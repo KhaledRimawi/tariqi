@@ -21,4 +21,8 @@ If you want to learn more about creating good readme files then refer the follow
 - [Chakra Core](https://github.com/Microsoft/ChakraCore)
 
 # Members
+<<<<<<< HEAD
+# sama kali
+=======
 Mayar Jafar
+>>>>>>> 97f6a0f902681b55a89576d6dc1d560916e0fc6b
