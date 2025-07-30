@@ -22,7 +22,13 @@ If you want to learn more about creating good readme files then refer the follow
 
 # Members
 Sama Kali
+
 Mayar Jafar
+
 Ameer Saleh
+
 Hala Jebreel
-Khaled Abdalraheemaddd
+
+Khaled Abdalraheem
+
+Alaaddin Odeh
