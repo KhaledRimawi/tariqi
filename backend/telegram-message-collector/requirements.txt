@@ -1,0 +1,5 @@
+# Telegram Message Collector - Requirements
+telethon>=1.35.0
+pandas>=2.0.0
+aiofiles>=23.0.0
+pytz>=2023.3
