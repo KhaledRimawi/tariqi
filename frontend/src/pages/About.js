@@ -1,23 +1,29 @@
 import React from 'react';
+// import Navbar from '../Navbar'; // Removed: Navbar is rendered in App.js
 import './About.css';
-import image from '../assets/image.jpg'; // You can replace this with a nice SVG illustration
+import logo from '../assets/LogoFinal.png'; // Import your logo image
 
-function About() {
-  return (
-    <div className="about-container">
-      <div className="about-content">
-        <div className="about-image">
-          <img src={image} alt="About Us" />
-        </div>
-        <div className="about-text">
-          <h1>Welcome to AI Navigation Palestine</h1>
-          <p>
-            We are committed to revolutionizing the way people travel across Palestine by leveraging cutting-edge artificial intelligence and smart technology. Our mission is to provide safe, efficient, and context-aware navigation solutions tailored to the unique geography and cultural landscape of Palestine. Through real-time traffic analysis, offline capabilities, and community-driven insights, we empower individuals and communities to explore their surroundings with confidence and ease. Join us on this journey to smarter, more connected travel.
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
+const About = () => {
+    return (
+        <>
+            {/* Removed: Navbar is rendered in App.js */}
+            <div className="about-container">
+                <div className="about-card animated-card">
+                    {/* The src now uses your imported logo file */}
+                    <img src={logo} alt="SmartNav Palestine Logo" className="about-image" />
+                    <div className="about-content">
+                        <h1>About Our Project</h1>
+                        <p>
+                            Our project is dedicated to providing an **AI-powered navigation solution for Palestine**. By leveraging cutting-edge technology, we are creating a tool that is not only functional and user-friendly but also helps you explore the rich history and culture of the region with a modern and intuitive interface.
+                        </p>
+                        <p>
+                            We believe in the power of technology to connect people with their heritage and to make travel more accessible and meaningful.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </>
+    );
+};
 
 export default About;

@@ -1,95 +1,115 @@
-.about-container {
+/* src/About.css */
+
+/*
+  Global body/html reset and container styling for a fullscreen layout.
+  This is the foundation for a beautiful, full-page experience.
+*/
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
   width: 100%;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #dff1f8, #f7e4f5);
+  font-family: 'Inter', sans-serif; /* Using a modern, clean font */
+  background: linear-gradient(135deg, #f5f7fa, #c3cfe2); /* Subtle gradient background */
+  overflow-y: auto; /* Allow scrolling on longer pages */
+}
+
+.about-container {
+  min-height: 100vh; /* Use min-height to allow page to grow */
+  width: 100vw;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   padding: 2rem;
 }
 
-.about-content {
+/*
+  This is the main card with the content. We'll use a "frosted glass" effect.
+*/
+.about-card {
+  background: rgba(255, 255, 255, 0.7); /* Slightly transparent white */
+  backdrop-filter: blur(10px); /* Frosted glass effect */
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 15px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37); /* Professional-looking shadow */
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  max-width: 900px;
+  width: 100%;
   display: flex;
-  width: 90%;
-  max-width: 1200px;
-  height: auto;
-  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2);
-  border-radius: 20px;
+  flex-direction: row; /* Layout image and text side-by-side */
   overflow: hidden;
-  backdrop-filter: blur(10px);
-  background: rgba(255, 255, 255, 0.4);
-  transition: transform 0.5s ease;
-}
-
-.about-content:hover {
-  transform: translateY(-10px);
 }
 
 .about-image {
-  width: 50%;
-  background-color: #cce6f4;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-.about-image img {
-  width: 80%;
+  max-width: 40%;
   height: auto;
-  animation: float 4s ease-in-out infinite;
+  object-fit: cover;
+  border-radius: 15px 0 0 15px;
 }
 
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
-}
-
-.about-image::before {
-  content: "About Us";
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
-  font-size: 3rem;
-  color: #fff;
-  font-family: 'Georgia', serif;
-  text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.3);
-}
-
-.about-text {
-  width: 50%;
-  padding: 3rem;
+.about-content {
+  padding: 2rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  gap: 1rem;
 }
 
-.about-text h1 {
-  font-size: 2.8rem;
-  margin-bottom: 1rem;
-  color: #333;
+.about-content h1 {
+  font-size: 2.5rem;
+  color: #2c3e50;
+  font-weight: 700;
+  margin: 0;
 }
 
-.about-text p {
-  font-size: 1.2rem;
-  line-height: 1.8;
-  color: #555;
+.about-content p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #34495e;
+  margin: 0;
 }
 
-/* Responsive */
-@media (max-width: 900px) {
+/*
+  Animation for the card to slide in
+*/
+@keyframes slideInFromLeft {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animated-card {
+  animation: slideInFromLeft 1s ease-out forwards;
+}
+
+/*
+  Responsive design for smaller screens (e.g., mobile phones)
+  This media query will apply styles only when the screen width is 768px or less.
+*/
+@media (max-width: 768px) {
+  .about-card {
+    flex-direction: column; /* Stack the image and text vertically */
+  }
+
+  .about-image {
+    max-width: 100%; /* Make the image take full width of the card */
+    border-radius: 15px 15px 0 0; /* Adjust border radius for top corners */
+  }
+
   .about-content {
-    flex-direction: column;
+    padding: 1rem; /* Reduce padding on mobile */
   }
 
-  .about-image, .about-text {
-    width: 100%;
+  .about-content h1 {
+    font-size: 2rem; /* Reduce font size for readability */
   }
 
-  .about-image::before {
-    font-size: 2.5rem;
-    bottom: 10px;
-    left: 10px;
+  .about-content p {
+    font-size: 1rem; /* Reduce font size for readability */
   }
 }

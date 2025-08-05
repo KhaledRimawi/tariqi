@@ -1,0 +1,66 @@
+/* src/Home.css */
+
+/*
+  This is a full reset to ensure no default browser styling
+  interferes with the full-screen video layout.
+*/
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden; /* Prevents scrolling */
+}
+
+/*
+  This container is a fixed element that is pinned to all four corners of the viewport.
+  This is the most reliable way to create a full-screen layout.
+*/
+.home-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+/*
+  The video itself is positioned to cover the full space of its parent container.
+  min-width and min-height with object-fit: cover ensures it scales to fill the space
+  while maintaining its aspect ratio.
+*/
+.background-video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  min-width: 100%;
+  min-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: cover;
+  transform: translate(-50%, -50%);
+  z-index: -2;
+}
+
+.home-content {
+  position: relative;
+  z-index: 1;
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+  background-color: transparent;
+  padding: 2rem;
+  border-radius: 15px;
+}
+
+.home-content h1 {
+  font-size: 3rem;
+  transition: color 0.5s ease-in-out;
+}

@@ -1,21 +1,27 @@
-// src/navbar.js
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
+import logo from './assets/LogoFinal.png'; // Make sure this path is correct
+import './Navbar.css';
 
 const Navbar = () => {
-  return (
-    <nav style={{
-      padding: '1rem',
-      backgroundColor: '#045d75',
-      color: '#fff',
-      display: 'flex',
-      gap: '1rem'
-    }}>
-      <Link to="/" style={{ color: '#fff', textDecoration: 'none' }}>Home</Link>
-      <Link to="/about" style={{ color: '#fff', textDecoration: 'none' }}>About</Link>
-      <Link to="/map" style={{ color: '#fff', textDecoration: 'none' }}>Map</Link> {/* <-- New link */}
-    </nav>
-  );
+    return (
+        <nav className="navbar">
+            <div className="navbar-logo">
+                <img src={logo} alt="Logo" className="logo" />
+            </div>
+            <ul className="nav-links">
+                <li>
+                    <NavLink to="/" exact activeClassName="active">Home</NavLink>
+                </li>
+                <li>
+                    <NavLink to="/about" activeClassName="active">About</NavLink>
+                </li>
+                <li>
+                    <NavLink to="/map" activeClassName="active">Map</NavLink>
+                </li>
+            </ul>
+        </nav>
+    );
 };
 
 export default Navbar;

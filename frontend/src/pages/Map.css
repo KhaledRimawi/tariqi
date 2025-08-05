@@ -1,0 +1,28 @@
+.home-container {
+  height: 80vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.home-container h1 {
+  font-size: 3rem;
+  transition: color 0.5s ease-in-out;
+}
+/* src/Map.css */
+#map {
+    height: 100vh;
+    width: 100vw;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0; /* Ensure the map is behind the navbar */
+}
+
+
+/* Ensure Navbar stays visible above the map */
+.navbar {
+  z-index: 1000;
+  position: relative;
+}
