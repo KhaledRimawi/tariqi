@@ -5,7 +5,7 @@ from datetime import datetime
 
 # ✅ MongoDB Atlas connection string (password encoded)
 uri = "mongodb+srv://AiTeamC:AI%23TeamC123@cluster0.904co68.mongodb.net/?retryWrites=true&w=majority"
-client = MongoClient(uri)
+client = MongoClient(uri) , ssl = True 
 db = client["TeamC"]  # Database name
 collection = db["data"]  # Collection name
 

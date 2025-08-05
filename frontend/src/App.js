@@ -4,11 +4,14 @@ import Home from './pages/Home';
 import About from './pages/About';
 import Map from './pages/Map';
 import Navbar from './navbar'; // <-- Added this import
+import PushNotificationSetup from './pages/PushNotificationSetup';
+
 
 function App() {
   return (
     <Router>
       <Navbar /> {/* <-- Added this line to render the Navbar */}
+      <PushNotificationSetup />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
