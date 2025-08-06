@@ -16,6 +16,28 @@ collection = mongo.db.data
 
 # --------------------- ROUTES ---------------------
 
+# POST: Add multiple checkpoint documents
+@app.route('/api/data', methods=['POST'])
+def add_checkpoints():
+    data = request.get_json()
+
+    if not isinstance(data, list):
+        return jsonify({"error": "Expected an array of objects"}), 400
+
+    for item in data:
+        required_keys = ['city', 'checkpoint', 'status', 'direction', 'updatedAt']
+        if not all(key in item for key in required_keys):
+            return jsonify({"error": f"Missing one or more required fields: {required_keys}"}), 400
+
+    result = collection.insert_many(data)
+
+    return jsonify({
+        "message": "✅ Data inserted successfully",
+        "insertedCount": len(result.inserted_ids),
+        "insertedIds": [str(_id) for _id in result.inserted_ids]
+    }), 201
+
+
 # GET one random checkpoint
 @app.route('/api/checkpoints/random', methods=['GET'])
 def get_random_checkpoint():
@@ -27,7 +49,7 @@ def get_random_checkpoint():
         return jsonify(doc)
     else:
         return jsonify({"message": "No data found"}), 404
-
+    
 # GET all data
 @app.route('/api/data/show', methods=['GET'])
 def get_all_data():
