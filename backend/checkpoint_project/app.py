@@ -14,10 +14,22 @@ mongo = PyMongo(app)
 # Use 'data' collection like in Node.js
 collection = mongo.db.data
 
-# ROUTES 
+# --------------------- ROUTES ---------------------
+
+# GET one random checkpoint
+@app.route('/api/checkpoints/random', methods=['GET'])
+def get_random_checkpoint():
+    pipeline = [{'$sample': {'size': 1}}]  # MongoDB aggregation to get random document
+    result = list(collection.aggregate(pipeline))
+    
+    if result:
+        doc = prepare_doc(result[0])
+        return jsonify(doc)
+    else:
+        return jsonify({"message": "No data found"}), 404
 
 # GET all data
-@app.route('/api/data', methods=['GET'])
+@app.route('/api/data/show', methods=['GET'])
 def get_all_data():
     results = collection.find().sort("updatedAt", -1)
     data = [prepare_doc(doc) for doc in results]
@@ -73,6 +85,6 @@ def prepare_doc(doc):
         doc['updatedAt'] = doc['updatedAt'].isoformat()
     return doc
 
-# SERVER 
+# --------------------- SERVER ---------------------
 if __name__ == '__main__':
     app.run(port=5000, debug=True)
