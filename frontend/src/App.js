@@ -1,26 +1,21 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Navbar from './navbar';
 import Home from './pages/Home';
 import About from './pages/About';
-import Map from './pages/Map';
-import Navbar from './navbar'; // <-- Added this import
-import PushNotificationSetup from './pages/PushNotificationSetup';
-import CheckpointCard from './cards/CheckpointCard';
+import MapPage from './pages/MapPage';
 
-
-function App() {
+const App = () => {
   return (
     <Router>
-      <Navbar /> {/* <-- Added this line to render the Navbar */}
-      <PushNotificationSetup />
+      <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
-        <Route path="/map" element={<Map />} />
+        <Route path="/map" element={<MapPage />} />
       </Routes>
-      <CheckpointCard/>
     </Router>
   );
-}
+};
 
 export default App;

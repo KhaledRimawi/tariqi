@@ -1,8 +1,9 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './Map.css';
-// import Navbar from '../Navbar'; // Removed: Navbar is rendered in App.js
+import * as topojson from 'topojson-client';
+import palestineTopoJson from '../assets/palestine.topo.json';
 
 // Fix for default marker icons not showing up in Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -13,131 +14,113 @@ L.Icon.Default.mergeOptions({
 });
 
 const Map = () => {
-  const mapRef = useRef(null); // Create a ref to store the map instance
+  const mapRef = useRef(null);
+  const checkpointMarkersRef = useRef([]);
+  const userMarkerRef = useRef(null);
+  const [checkpoints, setCheckpoints] = useState([]);
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'مغلق': case 'مسكر': case 'مكهرب': return 'red';
+      case 'مفتوح': case 'سالك': case 'بحري': return 'green';
+      case 'ازمة': case 'مزدحم': return 'orange';
+      default: return 'gray';
+    }
+  };
 
   useEffect(() => {
-    // Check if the map element exists and has a leaflet instance already
-    const mapContainer = document.getElementById('map');
-    if (mapContainer && mapContainer._leaflet_id) {
-      return; // Prevent reinitialization
-    }
+    const fetchCheckpoints = async () => {
+      try {
+        const response = await fetch('http://127.0.0.1:5000/api/checkpoints/merged');
 
-    // Initialize Map Centered on West Bank
-    const map = L.map('map').setView([31.8, 35.3], 10);
-    mapRef.current = map; // Store the map instance in the ref
-
-    // Add OpenStreetMap Tile Layer
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
-
-    // Define West Bank Bounding Box (SW & NE Corners)
-    const bounds = L.latLngBounds(
-      [31.2, 34.8],  // Southwest corner (lat, lon)
-      [32.5, 35.6]   // Northeast corner (lat, lon)
-    );
-
-    // Restrict Panning to Bounds
-    map.setMaxBounds(bounds);
-
-    // Prevent zooming out too much
-    map.setMinZoom(10);
-
-    // Snap back inside bounds when dragging outside
-    map.on('drag', function() {
-      if (mapRef.current) {
-        mapRef.current.panInsideBounds(bounds, { animate: false });
-      }
-    });
-
-    // Create a beautiful, animated location icon using a base64 encoded SVG
-    const svgIcon = `
-      <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-        <style>
-          @keyframes pulse {
-            0% { transform: scale(0.9); opacity: 1; }
-            50% { transform: scale(1.1); opacity: 0.7; }
-            100% { transform: scale(0.9); opacity: 1; }
-          }
-          .pin-drop {
-            animation: pulse 1.5s infinite ease-in-out;
-            transform-origin: center;
-          }
-        </style>
-        <circle class="pin-drop" cx="20" cy="20" r="10" fill="#E74C3C" stroke="#C0392B" stroke-width="2"/>
-        <path d="M20 30 C15 30, 10 25, 10 20 C10 15, 20 5, 20 5 C20 5, 30 15, 30 20 C30 25, 25 30, 20 30Z" fill="#E74C3C" stroke="#C0392B" stroke-width="2"/>
-        <circle cx="20" cy="18" r="4" fill="#FFFFFF"/>
-      </svg>`;
-    const locationIcon = L.divIcon({
-      className: '',
-      html: svgIcon,
-      iconSize: [40, 40],
-      iconAnchor: [20, 40],
-      popupAnchor: [0, -40]
-    });
-
-    // Optional: Show User Location Marker
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          // Check if the map still exists before performing operations
-          if (mapRef.current) {
-            const lat = position.coords.latitude;
-            const lon = position.coords.longitude;
-
-            mapRef.current.setView([lat, lon], 13);
-            L.marker([lat, lon], { icon: locationIcon })
-              .addTo(mapRef.current)
-              .bindPopup('You are here!')
-              .openPopup();
-          }
-        },
-        () => {
-          console.error('Could not get your location');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
-      );
-    }
-
-    // Handle Click to Add Circle
-    let lastCircle = null;
-    map.on('click', (e) => {
-      if (mapRef.current) {
-        const { lat, lng } = e.latlng;
-
-        // Remove previous circle if exists
-        if (lastCircle) {
-          mapRef.current.removeLayer(lastCircle);
-        }
-
-        // Add new circle at clicked position
-        lastCircle = L.circle([lat, lng], {
-          color: 'red',
-          fillColor: '#f03',
-          fillOpacity: 0.4,
-          radius: 500 // Radius in meters
-        }).addTo(mapRef.current);
-
-        // Popup showing coordinates
-        lastCircle.bindPopup(`Selected Area:<br>Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`).openPopup();
-      }
-    });
-
-    // Return a cleanup function to remove the map on unmount
-    return () => {
-      if (mapRef.current) {
-        mapRef.current.remove();
-        mapRef.current = null; // Clear the ref
+        
+        const mergedCheckpoints = await response.json();
+        
+        setCheckpoints(mergedCheckpoints);
+      } catch (error) {
+        console.error("Could not fetch checkpoints:", error);
       }
     };
-
+    fetchCheckpoints();
   }, []);
 
-  return (
-    <>
-      {/* Removed: Navbar is rendered in App.js */}
-      <div id="map"></div>
-    </>
-  );
+  useEffect(() => {
+    if (mapRef.current) return;
+    const map = L.map('map').setView([31.9, 35.2], 8);
+    mapRef.current = map;
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors' }).addTo(map);
+
+    const bounds = L.latLngBounds([31.2, 34.8], [32.5, 35.6]);
+    const palestineGeoJSON = topojson.feature(palestineTopoJson, palestineTopoJson.objects.collection);
+    L.geoJSON(palestineGeoJSON, { style: { color: "#FF0000", weight: 3, opacity: 1, fillOpacity: 0 }}).addTo(map);
+
+    map.setMaxBounds(bounds);
+    map.setMinZoom(8);
+    map.on('drag', function() { if (mapRef.current) { mapRef.current.panInsideBounds(bounds, { animate: false }); }});
+    return () => { if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; }};
+  }, []);
+
+  useEffect(() => {
+    if (!mapRef.current || checkpoints.length === 0) return;
+    checkpointMarkersRef.current.forEach(marker => mapRef.current.removeLayer(marker));
+    checkpointMarkersRef.current = [];
+    checkpoints.forEach(checkpoint => {
+      if (checkpoint.lat && checkpoint.lng) {
+        const checkpointColor = getStatusColor(checkpoint.status);
+        const checkpointSvgIcon = `<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="${checkpointColor}" stroke="#FFF" stroke-width="2"/><text x="12" y="16" font-family="Arial" font-size="10" fill="#FFF" text-anchor="middle">${checkpoint.checkpoint_name ? checkpoint.checkpoint_name.charAt(0) : '?'}</text></svg>`;
+        const checkpointIcon = L.divIcon({ className: '', html: checkpointSvgIcon, iconSize: [24, 24], iconAnchor: [12, 12], popupAnchor: [0, -12] });
+        const marker = L.marker([checkpoint.lat, checkpoint.lng], { icon: checkpointIcon })
+          .addTo(mapRef.current)
+          .bindPopup(`<b>${checkpoint.checkpoint_name || 'N/A'}</b><br>Status: ${checkpoint.status || 'N/A'}<br>Direction: ${checkpoint.direction || 'N/A'}`);
+        checkpointMarkersRef.current.push(marker);
+      }
+    });
+  }, [checkpoints, mapRef.current]);
+
+  // Updated effect for adding the user's location with a red professional icon
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        const { latitude, longitude } = position.coords;
+        const userLatLng = [latitude, longitude];
+
+        // Create a custom SVG icon for the user's location with a red fill
+        const userSvgIcon = `
+          <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#FF0000" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+            <circle cx="12" cy="9" r="2" fill="#fff"/>
+          </svg>`;
+        
+        const userIcon = L.divIcon({
+          className: 'user-marker-icon',
+          html: userSvgIcon,
+          iconSize: [24, 24],
+          iconAnchor: [12, 24],
+          popupAnchor: [0, -24]
+        });
+
+        if (userMarkerRef.current) {
+          userMarkerRef.current.setLatLng(userLatLng);
+        } else {
+          userMarkerRef.current = L.marker(userLatLng, { icon: userIcon }).addTo(mapRef.current)
+            .bindPopup("Your Current Location").openPopup();
+        }
+
+        mapRef.current.setView(userLatLng, 12);
+      }, (error) => {
+        console.error("Error getting user location:", error);
+      });
+    } else {
+      console.log("Geolocation is not supported by your browser.");
+    }
+  }, [mapRef.current]);
+
+  return (<div id="map"></div>);
 };
 
 export default Map;
