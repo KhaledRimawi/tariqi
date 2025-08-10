@@ -15,7 +15,6 @@ const CheckpointCard = () => {
     const redStatuses = ["مغلق", "مسكر", "مزدحم", "ازمة", "مكهرب"];
     const greenStatuses = ["سالك", "مفتوح", "بحري"];
 
-
     const headerBgColor = redStatuses.includes(checkpoint.status)
         ? '#dc3545'
         : greenStatuses.includes(checkpoint.status)
@@ -26,7 +25,7 @@ const CheckpointCard = () => {
         <div
             className="card m-3 shadow"
             style={{
-                width: '300px',
+                width: '320px',
                 height: 'auto',
                 lineHeight: '2.2',
                 fontWeight: 'bold',
@@ -42,14 +41,18 @@ const CheckpointCard = () => {
                     backgroundColor: headerBgColor,
                 }}
             >
-                حاجز {checkpoint.checkpoint}
+                حاجز {checkpoint.checkpoint_name}
             </h5>
             <div className="card-body p-2" style={{ fontSize: '0.85rem' }}>
-                <p className="card-title mb-1">المدينة: {checkpoint.city}</p>
-                <p className="card-text mb-1">الحالة: {checkpoint.status}</p>
-                <p className="card-text mb-1">الاتجاه: {checkpoint.direction}</p>
-                <p className="card-text mb-0">
-                    آخر تحديث: {new Date(checkpoint.updatedAt).toLocaleString('ar-EG')}
+                <p className="card-title mb-1"> رقم الرسالة: {checkpoint.message_id} 🔢</p>
+                <p className="card-text mb-1">  {checkpoint.source_channel} :القناة📡</p>
+                <p className="card-text mb-1"> المدينة: {checkpoint.city_name} 📍</p>
+                <p className="card-text mb-1"> الحالة: {checkpoint.status} 🚦</p>
+                <p className="card-text mb-1"> الاتجاه: {checkpoint.direction} ↔️</p>
+                <p className="card-text mb-1"> آخر تحديث: {new Date(checkpoint.message_date).toLocaleString('ar-EG')} 🕒</p>
+                <p className="card-text mt-3 text-muted" style={{ fontWeight: 'normal', lineHeight: '1.8' }}>
+                    :الرسالة الأصلية📝<br />
+                    {checkpoint.original_message}
                 </p>
             </div>
         </div>
