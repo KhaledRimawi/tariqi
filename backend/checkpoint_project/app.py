@@ -3,6 +3,8 @@ from flask_pymongo import PyMongo
 from bson import ObjectId
 from datetime import datetime, timedelta
 from flask_cors import CORS
+from geo_utils import haversine  # ⬅️ Import the utility
+
 
 app = Flask(__name__)
 CORS(app)
@@ -15,31 +17,9 @@ mongo = PyMongo(app)
 data_collection = mongo.db.data
 location_collection = mongo.db.CheckpointLocation
 
+RADIUS_KM = 5
+# --------------------- ROUTES For Data---------------------
 # Helper function to prepare a document for JSON serialization
-def prepare_doc(doc):
-    if '_id' in doc:
-        doc['_id'] = str(doc['_id'])
-    
-    # Convert datetime objects to ISO format string
-    if isinstance(doc.get('message_date'), datetime):
-        doc['message_date'] = doc['message_date'].isoformat()
-    
-    # Try to find matching location data and add lat/lng
-    city = doc.get('city_name')
-    checkpoint = doc.get('checkpoint_name')
-    if city and checkpoint:
-        location = location_collection.find_one({
-            "city": city,
-            "checkpoint": checkpoint
-        })
-
-        if location:
-            doc['lat'] = location.get('lat')
-            doc['lng'] = location.get('lng')
-    
-    return doc
-
-# --------------------- NEW AND CORRECTED ROUTES ---------------------
 
 # GET a merged list of all checkpoints with their latest status
 @app.route('/api/checkpoints/merged', methods=['GET'])
@@ -66,8 +46,6 @@ def get_merged_checkpoints():
         merged_data.append(merged_checkpoint)
 
     return jsonify(merged_data)
-
-# --------------------- ROUTES For Data ---------------------
 
 # POST: Add multiple checkpoint documents to the 'data' collection
 @app.route('/api/data', methods=['POST'])
@@ -130,16 +108,87 @@ def search_data():
     data = [prepare_doc(doc) for doc in results]
     return jsonify(data)
 
-# GET one random checkpoint from the 'CheckpointLocation' collection
-@app.route('/api/checkpoints/random', methods=['GET'])
-def get_random_checkpoint():
-    pipeline = [{'$sample': {'size': 1}}]
-    result = list(location_collection.aggregate(pipeline))
-    if result:
-        doc = prepare_doc(result[0])
-        return jsonify(doc)
-    else:
-        return jsonify({"message": "No data found"}), 404
+### to get nearby checkpoints depending 
+
+@app.route('/api/near_location', methods=['GET', 'POST'])
+def get_nearby_checkpoints():
+    data = request.get_json()
+    user_lat = data.get("latitude")
+    user_lng = data.get("longitude")
+
+    radius_km = RADIUS_KM
+
+    if user_lat is None or user_lng is None:
+        return jsonify({"error": "Missing lat/lng"}), 400
+
+    checkpoints = list(location_collection.find({
+        "lat": {"$exists": True},
+        "lng": {"$exists": True}
+    }))
+    nearby = []
+
+    print(f"📍User location: ({user_lat}, {user_lng})")
+    
+
+    for cp in checkpoints:
+        cp_lat = cp.get("lat")
+        cp_lng = cp.get("lng")
+        if cp_lat is None or cp_lng is None:
+            continue
+
+        dist = haversine(user_lat, user_lng, cp_lat, cp_lng)
+        if dist > radius_km:
+            continue  # Skip if too far
+
+        #  Only proceed if within radius
+        status_doc = data_collection.find_one({
+            "checkpoint_name": cp.get("checkpoint"),
+            "city_name": cp.get("city")
+        }, sort=[("message_date", -1)])
+
+        merged = {
+            "checkpoint": cp.get("checkpoint"),
+            "city": cp.get("city"),
+            "latitude": cp_lat,
+            "longitude": cp_lng,
+            "distance_km": round(dist, 2)
+        }
+
+        if status_doc:
+            merged["status"] = status_doc.get("status")
+            merged["direction"] = status_doc.get("direction")
+            merged["updatedAt"] = status_doc.get("message_date")
+
+        nearby.append(merged)
+        print(f"📦 Found nearby: {nearby}")
+
+
+    return jsonify(nearby)
+
+
+# Helper to convert ObjectId to str
+def prepare_doc(doc):
+    doc['_id'] = str(doc['_id'])
+
+    # Convert datetime
+    if isinstance(doc.get('message_date'), datetime):
+        doc['message_date'] = doc['message_date'].isoformat()
+
+    # Try to find matching location
+    city = doc.get('city_name')
+    checkpoint = doc.get('checkpoint_name')
+    if city and checkpoint:
+        location = location_collection.find_one({
+            "city": city,
+            "checkpoint": checkpoint
+        })
+
+        if location:
+            doc['lat'] = location.get('lat')
+            doc['lng'] = location.get('lng')
+
+    return doc
+
 
 # --------------------- ROUTES For Checkpoint Location ---------------------
 

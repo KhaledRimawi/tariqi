@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import getLocation from '../utils/getLocation';
 
 export default function PushNotificationSetup() {
   useEffect(() => {
@@ -26,73 +27,95 @@ export default function PushNotificationSetup() {
       const permission = await Notification.requestPermission();
       if (permission === "granted") {
         console.log("✅ Notification permission granted.");
-        await sendNotificationForClosedCheckpoints();  //  no longer triggers unused warning
+        await notifyNearbyCheckpoints(); 
+        await sendNotificationForClosedCheckpoints();
+        
       } else {
         console.log("❌ Permission denied");
         alert("Notifications are blocked.");
       }
     }
 
-    // Function that fetches data from API and sends a notification
-    async function sendNotificationWithAPIData() {
-      try {
-        const response = await fetch("http://127.0.0.1:5000/api/data"); // your Flask API endpoint
-        const data = await response.json();
-
-        if (data.length > 0) {
-          const checkpoint = data[0]; // or pick the most recent one
-
-          const title = "🚨 Checkpoint Alert";
-          const options = {
-            body: `Location: ${checkpoint.name}\nStatus: ${checkpoint.status}`,
-            icon: '/icon.png' 
-          };
-
-          new Notification(title, options);
-        }
-      } catch (error) {
-        console.error("Failed to fetch API data or send notification:", error);
-      }
-    }
-
 async function sendNotificationForClosedCheckpoints() {
   try {
-    const response = await fetch("http://127.0.0.1:5000/api/data");
+    const response = await fetch("http://127.0.0.1:5000/api/data/show");
     const data = await response.json();
 
+    // Show first 3 items just to make sure notifications work
+    const sampleData = data.slice(0, 3); // Remove this line later
 
-    // Filter only closed checkpoints in Ramallah
-    const filtered = data
-      .filter(item => item.city === "رام الله" && item.status.includes("مغلق"))
-      .slice(0, 5); //  only first 5 since it keep sending non stop 
+    for (const item of sampleData) {
+      const title = `🚧 تنبيه حول حاجز ${item.checkpoint_name}`;
+      const options = {
+        body: `🔘 المعبر: ${item.checkpoint_name}
+📍 المدينة: ${item.city_name}
+📊 الحالة: ${item.status}
+🔄 الاتجاه: ${item.direction || "غير معروف"}
+🕒 ${new Date(item.message_date).toLocaleString("ar-EG")}`,
+        icon: '/icon.png',
+      };
 
-    const notified = JSON.parse(localStorage.getItem("notifiedCheckpoints")) || {};
-
-    let newNotified = { ...notified }; // To keep only recent 50 keys later
-
-    for (const item of filtered) {
-      const key = `${item.checkpoint}_${item.updatedAt}`;
-
-      if (!notified[key]) {
-        const title = "🚫 معبر مغلق - رام الله";
-        const options = {
-          body: `🔘 المعبر: ${item.checkpoint}\n📍 الحالة: ${item.status}\n🔄 الاتجاه: ${item.direction}\n🕒 ${new Date(item.updatedAt).toLocaleString("ar-EG")}`,
-          icon: '/icon.png'
-        };
-        new Notification(title, options);
-
-        newNotified[key] = true;
+      // Use Service Worker to show the notification
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (reg) {
+        reg.showNotification(title, options);
       }
     }
-
-    // ✅ Limit to 50 entries to prevent overflow
-    const keys = Object.keys(newNotified).slice(-50);
-    const trimmed = {};
-    for (const k of keys) trimmed[k] = true;
-
-    localStorage.setItem("notifiedCheckpoints", JSON.stringify(trimmed));
   } catch (error) {
     console.error("❌ Failed to fetch or send notifications:", error);
+  }
+}
+
+
+async function notifyNearbyCheckpoints() {
+  try {
+    const position = await getLocation();
+    const userLat = position.latitude;
+    const userLng = position.longitude;
+    
+
+    console.log("📍 Sending user location to backend:", userLat, userLng);
+
+    const res = await fetch("http://127.0.0.1:5000/api/near_location", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        latitude: userLat,
+        longitude: userLng
+      })
+    });
+
+    const nearbyCheckpoints = await res.json();
+    console.log("✅ Nearby checkpoints received:", nearbyCheckpoints);
+
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (!reg) {
+      console.warn("⚠️ No service worker registration found");
+      return;
+    }
+
+    if (nearbyCheckpoints.length > 0) {
+      for (const cp of nearbyCheckpoints) {
+        const title = "🚧 نقطة تفتيش قريبة منك";
+        const options = {
+          body: `🔘 المعبر: ${cp.checkpoint}\n📍 المدينة: ${cp.city}\n📡 الحالة: ${cp.status || "غير معروف"}\n🧭 الاتجاه: ${cp.direction || "غير معروف"}\n📏 البعد: ${cp.distance_km} كم\n🕒 ${new Date(cp.updatedAt).toLocaleString("ar-EG")}`,
+          requireInteraction: true
+
+        };
+
+        console.log("📣 Triggering notification:", title, options);
+        reg.showNotification(title, options);
+      }
+    } else {
+      console.log("ℹ️ No nearby checkpoints found. Sending fallback notification.");
+
+      reg.showNotification("🚫 لا توجد نقاط تفتيش قريبة", {
+        body: "📍 لم يتم العثور على نقاط تفتيش ضمن موقعك الحالي.",
+        requireInteraction: true,
+      });
+    }
+  } catch (err) {
+    console.error("❌ Error in notifyNearbyCheckpoints:", err);
   }
 }
 
