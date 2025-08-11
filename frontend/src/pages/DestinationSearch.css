@@ -1,0 +1,14 @@
+.centered-text {
+  text-align: center;
+}
+
+.centered-text::placeholder {
+  text-align: center;
+  color: #555555; 
+  opacity: 1;
+}
+
+.centered-select {
+  text-align-last: center; 
+  text-align: center; 
+}

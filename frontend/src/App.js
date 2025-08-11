@@ -4,6 +4,7 @@ import Navbar from './navbar';
 import Home from './pages/Home';
 import About from './pages/About';
 import MapPage from './pages/MapPage';
+import DestinationSearch from './pages/DestinationSearch';
 
 const App = () => {
   return (
@@ -13,6 +14,7 @@ const App = () => {
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/map" element={<MapPage />} />
+        <Route path="/destination-search" element={<DestinationSearch />} />
       </Routes>
     </Router>
   );

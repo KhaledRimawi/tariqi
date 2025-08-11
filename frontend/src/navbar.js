@@ -19,6 +19,9 @@ const Navbar = () => {
                 <li>
                     <NavLink to="/map" activeClassName="active">Map</NavLink>
                 </li>
+                <li>
+                    <NavLink to="/destination-search" activeClassName="active">Destination Search</NavLink>
+                </li>
             </ul>
         </nav>
     );
