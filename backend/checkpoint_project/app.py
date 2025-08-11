@@ -213,6 +213,43 @@ def add_locations():
         "insertedIds": [str(_id) for _id in result.inserted_ids]
     }), 201
 
+@app.route('/api/closest-checkpoint', methods=['GET'])
+def get_closest_checkpoint():
+    lat = request.args.get('lat', type=float)
+    lon = request.args.get('lon', type=float)
+
+    if lat is None or lon is None:
+        return jsonify({"error": "Missing lat or lon"}), 400
+
+    checkpoints = list(location_collection.find({
+        "lat": {"$exists": True},
+        "lng": {"$exists": True}
+    }))
+
+    min_dist = None
+    closest_cp = None
+
+    for cp in checkpoints:
+        cp_lat = cp.get("lat")
+        cp_lng = cp.get("lng")
+        dist = haversine(lat, lon, cp_lat, cp_lng) * 1000  # in meters
+
+        if min_dist is None or dist < min_dist:
+            min_dist = dist
+            closest_cp = cp
+
+    if closest_cp is None:
+        return jsonify({"error": "No checkpoints found"}), 404
+
+    return jsonify({
+        "checkpoint": closest_cp.get("checkpoint"),
+        "city": closest_cp.get("city"),
+        "lat": closest_cp.get("lat"),
+        "lon": closest_cp.get("lng"),
+        "distance_m": round(min_dist, 2)
+    })
+
+
 # --------------------- SERVER ---------------------
 if __name__ == '__main__':
     app.run(debug=True)
