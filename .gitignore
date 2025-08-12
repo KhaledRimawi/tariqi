@@ -1,1 +1,52 @@
+# Telegram session files
+*.session
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Logs
+logs/
+*.log
+
+# Runtime files
+monitor.pid
+monitor_state.json
+
+# Environment variables
+.env
+
+# Test files
+test_*.py
+check_*.py
+*_test.py
+
+# Old/duplicate files
+api_server.py
+continuous_monitor.py
+system_manager.py
+enhanced_system_manager.py
+monitor_service.py
+requirements_api.txt
+telegram_api.py
+clean_database.py
+delete_via_api.py
+data_structure_final.py
+final_check.py
+team_data_viewer.py
+view_data.py
+
+# Node modules
 **/node_modules
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -3,7 +3,7 @@
 Multi-Channel Telegram Message Collector
 
 This script collects messages from multiple Telegram channels/groups simultaneously,
-merges them chronologically, and includes source channel information.
+merges them chronologically, and saves them to MongoDB.
 """
 
 import asyncio
@@ -19,74 +19,101 @@ from telethon import TelegramClient
 from telethon.errors import SessionPasswordNeededError
 from telethon.tl.types import Channel, Chat
 
+# Import MongoDB handler
+from mongodb_handler import MongoDBHandler
+
 
 class MultiChannelTelegramCollector:
     """
     Enhanced Telegram collector that supports multiple channels/groups
     """
     
-    def __init__(self, api_id: int, api_hash: str, session_name: str = 'telegram_session'):
+    def __init__(self, api_id: int, api_hash: str, phone_number: str = None, session_name: str = 'telegram_session'):
         """
         Initialize the Telegram client.
         
         Args:
             api_id (int): Telegram API ID
             api_hash (str): Telegram API Hash
+            phone_number (str): Phone number for authentication
             session_name (str): Name for the session file
         """
         self.api_id = api_id
         self.api_hash = api_hash
+        self.phone_number = phone_number
         self.session_name = session_name
         self.client = TelegramClient(session_name, api_id, api_hash)
         
         # Enhanced location mapping for Palestinian checkpoints and cities
+        # Format: 'checkpoint_name': {'city': 'actual_city_name', 'governorate': 'governorate'}
         self.location_mapping = {
-            'عين سينيا': {'city': 'عين سينيا', 'governorate': 'رام الله'},
-            'قلنديا': {'city': 'قلنديا', 'governorate': 'رام الله'},
-            'يبرود': {'city': 'يبرود', 'governorate': 'رام الله'},
-            'صرة': {'city': 'صرة', 'governorate': 'نابلس'},
-            'صره': {'city': 'صرة', 'governorate': 'نابلس'},
-            'حارس': {'city': 'حارس', 'governorate': 'سلفيت'},
-            'جبع': {'city': 'جبع', 'governorate': 'رام الله'},
-            'النبي يونس': {'city': 'كفل حارس', 'governorate': 'سلفيت'},
-            'بزاريا': {'city': 'بزاريا', 'governorate': 'نابلس'},
-            'سيكال': {'city': 'سيكال', 'governorate': 'رام الله'},
-            'واد قانا': {'city': 'واد قانا', 'governorate': 'سلفيت'},
-            'واد كانا': {'city': 'واد قانا', 'governorate': 'سلفيت'},
-            'كدوميم': {'city': 'كدوميم', 'governorate': 'سلفيت'},
-            'قدوميم': {'city': 'كدوميم', 'governorate': 'سلفيت'},
-            'العروب': {'city': 'العروب', 'governorate': 'الخليل'},
-            'الطنيب': {'city': 'الطنيب', 'governorate': 'رام الله'},
-            'بيت فوريك': {'city': 'بيت فوريك', 'governorate': 'نابلس'},
-            'الجلزون': {'city': 'الجلزون', 'governorate': 'رام الله'},
+            # منطقة رام الله والبيرة
+            'عين سينيا': {'city': 'رام الله', 'governorate': 'رام الله'},
+            'قلنديا': {'city': 'رام الله', 'governorate': 'رام الله'},
+            'يبرود': {'city': 'رام الله', 'governorate': 'رام الله'},
+            'جبع': {'city': 'رام الله', 'governorate': 'رام الله'},
+            'الطنيب': {'city': 'رام الله', 'governorate': 'رام الله'},
+            'الجلزون': {'city': 'رام الله', 'governorate': 'رام الله'},
+            'المربعة': {'city': 'رام الله', 'governorate': 'رام الله'},
+            'لمربعه': {'city': 'رام الله', 'governorate': 'رام الله'},
+            'الفحص': {'city': 'رام الله', 'governorate': 'رام الله'},
+            'عش الغراب': {'city': 'رام الله', 'governorate': 'رام الله'},
+            'سلواد': {'city': 'رام الله', 'governorate': 'رام الله'},
+            'دير جرير': {'city': 'رام الله', 'governorate': 'رام الله'},
+            'بيت ايل': {'city': 'رام الله', 'governorate': 'رام الله'},
+            'بيت إيل': {'city': 'رام الله', 'governorate': 'رام الله'},
+            'سيكال': {'city': 'رام الله', 'governorate': 'رام الله'},
+            
+            # منطقة نابلس
+            'صرة': {'city': 'نابلس', 'governorate': 'نابلس'},
+            'صره': {'city': 'نابلس', 'governorate': 'نابلس'},
+            'بزاريا': {'city': 'نابلس', 'governorate': 'نابلس'},
+            'يتسهار': {'city': 'نابلس', 'governorate': 'نابلس'},
+            'بيت فوريك': {'city': 'نابلس', 'governorate': 'نابلس'},
+            'الفندق': {'city': 'نابلس', 'governorate': 'نابلس'},
+            'عورتا': {'city': 'نابلس', 'governorate': 'نابلس'},
+            'قرني قبوج': {'city': 'نابلس', 'governorate': 'نابلس'},
+            
+            # منطقة سلفيت
+            'حارس': {'city': 'سلفيت', 'governorate': 'سلفيت'},
+            'النبي يونس': {'city': 'سلفيت', 'governorate': 'سلفيت'},
+            'واد قانا': {'city': 'سلفيت', 'governorate': 'سلفيت'},
+            'واد كانا': {'city': 'سلفيت', 'governorate': 'سلفيت'},
+            'كدوميم': {'city': 'سلفيت', 'governorate': 'سلفيت'},
+            'قدوميم': {'city': 'سلفيت', 'governorate': 'سلفيت'},
+            'دير استيا': {'city': 'سلفيت', 'governorate': 'سلفيت'},
+            'ديراستيا': {'city': 'سلفيت', 'governorate': 'سلفيت'},
+            'جوريش': {'city': 'سلفيت', 'governorate': 'سلفيت'},
+            
+            # منطقة الخليل
+            'العروب': {'city': 'الخليل', 'governorate': 'الخليل'},
+            'راس الجورة': {'city': 'الخليل', 'governorate': 'الخليل'},
+            'فرش الهوى': {'city': 'الخليل', 'governorate': 'الخليل'},
+            
+            # منطقة القدس
+            'دوار الرام': {'city': 'القدس', 'governorate': 'القدس'},
+            'العيزرية': {'city': 'القدس', 'governorate': 'القدس'},
+            'زعيم': {'city': 'القدس', 'governorate': 'القدس'},
+            'عناتا': {'city': 'القدس', 'governorate': 'القدس'},
+            'حزما': {'city': 'القدس', 'governorate': 'القدس'},
+            'الرام': {'city': 'القدس', 'governorate': 'القدس'},
+            'كفر عقب': {'city': 'القدس', 'governorate': 'القدس'},
+            'الكونتير': {'city': 'القدس', 'governorate': 'القدس'},
+            'الكونتينر': {'city': 'القدس', 'governorate': 'القدس'},
+            
+            # منطقة جنين
+            'عناب': {'city': 'جنين', 'governorate': 'جنين'},
+            'حومش': {'city': 'جنين', 'governorate': 'جنين'},
+            'الجلمة': {'city': 'جنين', 'governorate': 'جنين'},
+            'جلمة': {'city': 'جنين', 'governorate': 'جنين'},
+            
+            # مدن رئيسية (في حالة ذكرها مباشرة)
             'رام الله': {'city': 'رام الله', 'governorate': 'رام الله'},
-            'دوار الرام': {'city': 'الرام', 'governorate': 'القدس'},
-            'المربعة': {'city': 'المربعة', 'governorate': 'رام الله'},
-            'لمربعه': {'city': 'المربعة', 'governorate': 'رام الله'},  # تصحيح إملائي
-            'يتسهار': {'city': 'يتسهار', 'governorate': 'نابلس'},
-            'الفحص': {'city': 'الفحص', 'governorate': 'رام الله'},
-            'راس الجورة': {'city': 'راس الجورة', 'governorate': 'الخليل'},
-            'فرش الهوى': {'city': 'فرش الهوى', 'governorate': 'الخليل'},
-            'العيزرية': {'city': 'العيزرية', 'governorate': 'القدس'},
-            'زعيم': {'city': 'زعيم', 'governorate': 'القدس'},
-            'عناتا': {'city': 'عناتا', 'governorate': 'القدس'},
-            'حزما': {'city': 'حزما', 'governorate': 'القدس'},
-            'عناب': {'city': 'عناب', 'governorate': 'جنين'},
-            'دير استيا': {'city': 'دير استيا', 'governorate': 'سلفيت'},
-            'ديراستيا': {'city': 'دير استيا', 'governorate': 'سلفيت'},
-            'الفندق': {'city': 'الفندق', 'governorate': 'نابلس'},
-            'الرام': {'city': 'الرام', 'governorate': 'القدس'},
-            'كفر عقب': {'city': 'كفر عقب', 'governorate': 'القدس'},
-            'عش الغراب': {'city': 'عش الغراب', 'governorate': 'رام الله'},
-            'عورتا': {'city': 'عورتا', 'governorate': 'نابلس'},
-            'سلواد': {'city': 'سلواد', 'governorate': 'رام الله'},
-            'دير جرير': {'city': 'دير جرير', 'governorate': 'رام الله'},
-            'حومش': {'city': 'حومش', 'governorate': 'جنين'},
-            'الكونتير': {'city': 'الكونتينر', 'governorate': 'القدس'},
-            'الكونتينر': {'city': 'الكونتينر', 'governorate': 'القدس'},
-            'جوريش': {'city': 'جوريش', 'governorate': 'سلفيت'},
-            'بيت ايل': {'city': 'بيت إيل', 'governorate': 'رام الله'},
-            'بيت إيل': {'city': 'بيت إيل', 'governorate': 'رام الله'}
+            'نابلس': {'city': 'نابلس', 'governorate': 'نابلس'},
+            'جنين': {'city': 'جنين', 'governorate': 'جنين'},
+            'الخليل': {'city': 'الخليل', 'governorate': 'الخليل'},
+            'سلفيت': {'city': 'سلفيت', 'governorate': 'سلفيت'},
+            'القدس': {'city': 'القدس', 'governorate': 'القدس'}
         }
     
     async def authenticate(self, phone_number: str = None):
@@ -96,20 +123,30 @@ class MultiChannelTelegramCollector:
         Args:
             phone_number (str): Phone number for authentication
         """
-        if not phone_number:
+        # Use provided phone number or stored one
+        if not phone_number and self.phone_number:
+            phone_number = self.phone_number
+        elif not phone_number:
             phone_number = input("📱 Enter your phone number (with country code, e.g., +970599123456): ")
         
-        await self.client.start(phone=phone_number)
+        print(f"📱 Using phone number: {phone_number}")
         
-        if not await self.client.is_user_authorized():
-            await self.client.send_code_request(phone_number)
-            code = input("📨 Enter the verification code: ")
-            
-            try:
-                await self.client.sign_in(phone_number, code)
-            except SessionPasswordNeededError:
-                password = input("🔐 Enter your 2FA password: ")
-                await self.client.sign_in(password=password)
+        await self.client.connect()
+        
+        if await self.client.is_user_authorized():
+            print("✅ Already authenticated from previous session!")
+            return
+        
+        # Need to authenticate
+        print("🔐 Authentication required...")
+        await self.client.send_code_request(phone_number)
+        code = input("📨 Enter the verification code sent to your phone: ")
+        
+        try:
+            await self.client.sign_in(phone_number, code)
+        except SessionPasswordNeededError:
+            password = input("🔐 Enter your 2FA password: ")
+            await self.client.sign_in(password=password)
         
         print("✅ Successfully authenticated!")
     
@@ -147,10 +184,10 @@ class MultiChannelTelegramCollector:
             message_text (str): Original message text
             
         Returns:
-            Tuple[str, str, str, str]: (checkpoint_name, city, event_type, cleaned_text)
+            Tuple[str, str, str, str, str]: (checkpoint_name, city, status, direction, cleaned_text)
         """
         if not message_text:
-            return 'غير محدد', 'غير محدد', 'غير محدد', ''
+            return 'غير محدد', 'غير محدد', 'غير محدد', 'غير محدد', ''
             
         message_lower = message_text.lower()
         
@@ -174,30 +211,41 @@ class MultiChannelTelegramCollector:
                     city = info['city']
                     break
         
-        # Extract event type
-        event_type = 'غير محدد'
+        # Extract status (event type)
+        status = 'غير محدد'
         
         # Check for questions/inquiries first
         if any(word in message_lower for word in ['شو وضع', 'كيف', 'ايش وضع', 'كيف الوضع', '؟']):
-            event_type = 'استفسار'
+            status = 'استفسار'
         elif any(closed in message_lower for closed in ['مغلق', 'مسكر', 'اغلاق', 'سكر', 'مغلقة', 'مسكرة', '❌']):
-            event_type = 'إغلاق'
+            status = 'إغلاق'
         elif any(jam in message_lower for jam in ['ازمة', 'أزمة', 'كثافة سير', 'واقف', 'خانقة', 'طويلة', '🔴']):
-            event_type = 'أزمة'
+            status = 'أزمة'
         elif any(clear in message_lower for clear in ['سالك', 'سالكة', 'فاتح', 'مفتوح', 'بحري', 'نضيف', '✅']):
-            event_type = 'سالك'
+            status = 'سالك'
         elif any(checkpoint in message_lower for checkpoint in ['حاجز', 'تفتيش', 'بفتش', 'تواجد جيش', 'جيش', 'حاجز طيار', 'وقف']):
-            event_type = 'حاجز/تفتيش'
+            status = 'حاجز/تفتيش'
         elif any(accident in message_lower for accident in ['حادث', 'حريق', 'عطلان', 'عطلانه']):
-            event_type = 'حادث'
+            status = 'حادث'
         elif any(opened in message_lower for opened in ['فتح', 'تم فتح']):
-            event_type = 'فتح'
+            status = 'فتح'
+        
+        # Extract direction
+        direction = 'غير محدد'
+        
+        # Check for direction indicators
+        if any(enter in message_lower for enter in ['للداخل', 'دخول', 'داخل', 'للدخول', 'ل الداخل']):
+            direction = 'دخول'
+        elif any(exit in message_lower for exit in ['للخارج', 'خروج', 'خارج', 'للخروج', 'ل الخارج']):
+            direction = 'خروج'
+        elif any(both in message_lower for both in ['بالاتجاهين', 'الاتجاهين', 'الجهتين', 'باتجاهين']):
+            direction = 'دخول وخروج'
         
         # Clean the text (remove emojis and extra spaces)
         cleaned_text = re.sub(r'[🔴❌✅️🤍🤝⚠️✋]+', '', message_text)
         cleaned_text = re.sub(r'\s+', ' ', cleaned_text).strip()
         
-        return checkpoint_name, city, event_type, cleaned_text
+        return checkpoint_name, city, status, direction, cleaned_text
     
     async def collect_from_single_channel(self, channel_username: str, message_limit: int, enhanced_format: bool = False) -> List[Dict[str, Any]]:
         """
@@ -226,20 +274,17 @@ class MultiChannelTelegramCollector:
                 message_text = message.text or message.message or ''
                 
                 if enhanced_format:
-                    checkpoint_name, city, event_type, cleaned_text = self.parse_message_structure(message_text)
+                    checkpoint_name, city, status, direction, cleaned_text = self.parse_message_structure(message_text)
                     
                     message_data = {
                         'message_id': message.id,
-                        'sender_id': message.sender_id if message.sender_id else 'Unknown',
-                        'sender_name': '',
                         'source_channel': channel_username,
-                        'checkpoint_name': checkpoint_name,
-                        'city': city,
-                        'event_type': event_type,
                         'original_message': message_text,
-                        'cleaned_message': cleaned_text,
-                        'message_date': local_time,
-                        'message_type': 'text'
+                        'checkpoint_name': checkpoint_name,
+                        'city_name': city,
+                        'status': status,
+                        'direction': direction,
+                        'message_date': local_time
                     }
                 else:
                     message_data = {
@@ -251,20 +296,6 @@ class MultiChannelTelegramCollector:
                         'message_date': local_time,
                         'message_type': 'text'
                     }
-                
-                # Get sender name
-                try:
-                    if message.sender:
-                        if hasattr(message.sender, 'first_name'):
-                            first_name = message.sender.first_name or ''
-                            last_name = message.sender.last_name or ''
-                            message_data['sender_name'] = f"{first_name} {last_name}".strip()
-                        elif hasattr(message.sender, 'title'):
-                            message_data['sender_name'] = message.sender.title
-                        elif hasattr(message.sender, 'username'):
-                            message_data['sender_name'] = message.sender.username or 'Unknown'
-                except:
-                    message_data['sender_name'] = 'Unknown'
                 
                 # Handle media messages
                 if message.media:
@@ -360,9 +391,8 @@ class MultiChannelTelegramCollector:
         try:
             with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
                 if enhanced_format:
-                    fieldnames = ['message_id', 'sender_id', 'sender_name', 'source_channel',
-                                'checkpoint_name', 'city', 'event_type', 'original_message', 
-                                'cleaned_message', 'message_date', 'message_type']
+                    fieldnames = ['message_id', 'source_channel', 'original_message', 
+                                'checkpoint_name', 'city_name', 'status', 'direction', 'message_date']
                 else:
                     fieldnames = ['message_id', 'sender_id', 'sender_name', 'source_channel',
                                 'message_text', 'message_date', 'message_type']
@@ -377,6 +407,44 @@ class MultiChannelTelegramCollector:
             
         except Exception as e:
             print(f"❌ Error saving to CSV: {e}")
+    
+    def save_to_mongodb(self, messages: List[Dict[str, Any]]) -> bool:
+        """Save messages to MongoDB database."""
+        if not messages:
+            print("⚠️ No messages to save to MongoDB.")
+            return False
+        
+        print(f"\n💾 Saving {len(messages)} messages to MongoDB...")
+        
+        try:
+            # Initialize MongoDB handler
+            mongo_handler = MongoDBHandler()
+            
+            # Connect to MongoDB
+            if not mongo_handler.connect():
+                print("❌ Failed to connect to MongoDB")
+                return False
+            
+            # Save messages
+            success = mongo_handler.save_messages(messages)
+            
+            if success:
+                print(f"✅ Successfully saved {len(messages)} messages to MongoDB!")
+                
+                # Get collection stats
+                stats = mongo_handler.get_collection_stats()
+                print(f"📊 Total documents in collection: {stats.get('total_documents', 'Unknown')}")
+            else:
+                print("❌ Failed to save messages to MongoDB")
+            
+            # Disconnect
+            mongo_handler.disconnect()
+            
+            return success
+            
+        except Exception as e:
+            print(f"❌ Error saving to MongoDB: {e}")
+            return False
     
     def print_sample_messages(self, messages: List[Dict[str, Any]], max_display: int = 5):
         """Print sample messages to console."""
@@ -396,14 +464,14 @@ class MultiChannelTelegramCollector:
         for i, msg in enumerate(messages[:max_display]):
             print(f"\n📧 Message {i+1}:")
             print(f"🆔 ID: {msg['message_id']}")
-            print(f"👤 Sender: {msg['sender_name']} (ID: {msg['sender_id']})")
-            print(f"📡 Source: {msg.get('source_channel', 'Unknown')}")
+            print(f" Source: {msg.get('source_channel', 'Unknown')}")
             print(f"📅 Date: {msg['message_date']}")
             
             if enhanced_format:
-                print(f"📍 Location: {msg['checkpoint_name']}")
-                print(f"🏙️ City: {msg['city']}")
-                print(f"🎯 Event: {msg['event_type']}")
+                print(f"📍 Checkpoint: {msg['checkpoint_name']}")
+                print(f"🏙️ City: {msg['city_name']}")
+                print(f"🎯 Status: {msg['status']}")
+                print(f"↔️ Direction: {msg['direction']}")
                 print(f"💬 Message: {msg['original_message'][:100]}...")
             else:
                 print(f"💬 Text: {msg['message_text'][:100]}...")
