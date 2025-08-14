@@ -16,7 +16,6 @@ monitor.pid
 monitor_state.json
 
 # Environment variables
-.env
 
 # Test files
 test_*.py
