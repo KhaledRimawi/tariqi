@@ -11,7 +11,7 @@ const Location = () => {
         setLocation(loc);
 
         // Send to backend
-        fetch('http://localhost:5000/api/location', {
+        fetch(`${process.env.REACT_APP_BACKEND_URL}/api/location`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

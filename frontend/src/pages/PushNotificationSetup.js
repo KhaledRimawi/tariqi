@@ -38,7 +38,7 @@ export default function PushNotificationSetup() {
 
 async function sendNotificationForClosedCheckpoints() {
   try {
-    const response = await fetch("http://127.0.0.1:5000/api/data/show");
+    const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/data/show`);
     const data = await response.json();
 
     // Show first 3 items just to make sure notifications work

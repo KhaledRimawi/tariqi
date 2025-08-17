@@ -18,7 +18,7 @@ const FeedbackNotification  = () => {
 
         // 1. Get closest checkpoint from backend
         const res = await fetch(
-          `http://localhost:5000/api/closest-checkpoint?lat=${latitude}&lon=${longitude}`
+          `${process.env.REACT_APP_BACKEND_URL}/api/closest-checkpoint?lat=${latitude}&lon=${longitude}`
         );
 
         if (!res.ok) {
@@ -32,7 +32,7 @@ const FeedbackNotification  = () => {
         const distance = checkpoint.distance_m;
 
         // 3. Check if within 100m to mark "close"
-        if (distance <= 100) {
+        if (distance <= process.env.REACT_APP_RADIUS) {
           setWasClose(true);
         } else if (
           wasClose &&

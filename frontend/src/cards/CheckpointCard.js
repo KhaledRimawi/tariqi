@@ -4,7 +4,7 @@ const CheckpointCard = () => {
     const [checkpoint, setCheckpoint] = useState(null);
 
     useEffect(() => {
-        fetch('http://localhost:5000/api/checkpoints/random')
+        fetch(`${process.env.REACT_APP_BACKEND_URL}/api/checkpoints/random`)
             .then(res => res.json())
             .then(data => setCheckpoint(data))
             .catch(err => console.error('Error fetching checkpoint:', err));

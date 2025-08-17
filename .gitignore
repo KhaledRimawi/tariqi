@@ -17,6 +17,7 @@ monitor_state.json
 
 # Environment variables
 
+
 # Test files
 test_*.py
 check_*.py

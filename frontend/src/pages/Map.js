@@ -31,7 +31,7 @@ const Map = () => {
   useEffect(() => {
     const fetchCheckpoints = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:5000/api/checkpoints/merged');
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/checkpoints/merged`);
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
