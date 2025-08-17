@@ -2,6 +2,18 @@
 """
 Validation script to check if all dependencies are properly installed.
 """
+import os
+from dotenv import load_dotenv
+
+# Load variables from .env file
+load_dotenv()
+
+# Reading variables from the environment
+API_ID = os.getenv("TELEGRAM_API_ID")
+
+# Verify that the values exist
+if not API_ID:
+    raise ValueError("❌ API ID is missing in .env file")
 
 def check_dependencies():
     """Check if all required dependencies are available."""
@@ -54,8 +66,9 @@ def main():
         print("💡 Please run: pip install -r requirements.txt")
     
     print("\n📋 Your configuration:")
-    print(f"API ID: 26389903")
+    print(f"API ID: {API_ID}")
     print(f"API Hash: b7f2c7e63f08653def683baef7c2334b")
+    
     print("\n📝 Next steps:")
     print("1. Run the main script: python telegram_collector.py")
     print("2. Enter your phone number when prompted")

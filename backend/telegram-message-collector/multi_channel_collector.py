@@ -11,6 +11,7 @@ import csv
 import os
 import sys
 import re
+from dotenv import load_dotenv
 from datetime import datetime
 import pytz
 from typing import List, Dict, Any, Tuple
@@ -22,6 +23,8 @@ from telethon.tl.types import Channel, Chat
 # Import MongoDB handler
 from mongodb_handler import MongoDBHandler
 
+# Loads values from .env file
+load_dotenv() 
 
 class MultiChannelTelegramCollector:
     """
@@ -485,10 +488,18 @@ class MultiChannelTelegramCollector:
 
 async def main():
     """Main function for multi-channel collection."""
+
+    # Reading variables from the environment
+    API__ID = int(os.getenv("TELEGRAM_API_ID"))
+
+    # Verify that the values exist
+    if not API__ID or not API__ID:
+        raise ValueError("❌ API ID is missing in .env file")
+
     # Configuration
-    API_ID = 26389903
+    API_ID = API__ID
     API_HASH = "b7f2c7e63f08653def683baef7c2334b"
-    
+
     print("🚀 Multi-Channel Telegram Message Collector")
     print("=" * 50)
     

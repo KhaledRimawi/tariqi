@@ -4,6 +4,8 @@ Merged API Server for Telegram Messages & Checkpoint Locations
 Includes search, filtering, geo-based queries, and MongoDB Atlas connection
 """
 
+import os
+from dotenv import load_dotenv
 from flask import Flask, request, jsonify
 from flask_pymongo import PyMongo
 from bson import ObjectId
@@ -15,7 +17,8 @@ from mongodb_handler import MongoDBHandler
 import json
 from urllib.parse import unquote
 
-
+# Loads values from .env file
+load_dotenv() 
 app = Flask(__name__)
 
 CORS(app)
@@ -24,11 +27,24 @@ CORS(app)
 app.config["MONGO_URI"] = "mongodb+srv://AiTeamC:AI%23TeamC123@cluster0.904co68.mongodb.net/TeamC?retryWrites=true&w=majority"
 mongo = PyMongo(app)
 
-# Collections
-data_collection = mongo.db.data
-location_collection = mongo.db.CheckpointLocation
 
-RADIUS_KM = 5
+# Reading variables from the environment
+COLLECTION_DATA = os.getenv("MONGO_COLLECTION_DATA")
+COLLECTION_LOCATIONS = os.getenv("MONGO_COLLECTION_LOCATIONS")
+HOST = os.getenv("FLASK_HOST")
+PORT = int(os.getenv("FLASK_PORT"))
+DEBUG = os.getenv("FLASK_DEBUG").lower() == "true"
+
+
+# Collections
+data_collection = mongo.db[COLLECTION_DATA]
+location_collection = mongo.db[COLLECTION_LOCATIONS]
+
+RADIUS_KM = float(os.getenv("RADIUS_IN_KM"))
+
+# Verify that the values exist
+if not COLLECTION_DATA or not COLLECTION_LOCATIONS or not HOST or not PORT :
+    raise ValueError("❌ COLLECTION_DATA or COLLECTION_LOCATIONS or RADIUS_IN_KM or HOST or PORT is missing in .env file")
 
 # ---------------- Helper Functions ----------------
 def prepare_doc(doc):
@@ -402,12 +418,15 @@ def get_closest_checkpoint():
 
 # ---------------- Server ----------------
 if __name__ == '__main__':
+
     print("🚀 Starting Unified API Server...")
-    print("🌐 API will run on: http://localhost:5000")
+    print(f"🌐 API will run on: http://{HOST}:{PORT}")
+
     print("\n📋 All Endpoints Available:")
     print("  📊 Data Collection & Search")
     print("  📍 Location & Position Services")  
     print("  🔍 Checkpoint Monitoring")
     print("  🗺️ Geospatial Queries")
     print("\n🤝 Team Integration Ready!")
-    app.run(host='127.0.0.1', port=5000, debug=False)
+
+    app.run(host=HOST, port=PORT, debug=DEBUG)

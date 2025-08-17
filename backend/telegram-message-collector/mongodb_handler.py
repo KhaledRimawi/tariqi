@@ -2,9 +2,24 @@
 MongoDB Database Handler for Telegram Message Collector
 """
 from pymongo import MongoClient
+from dotenv import load_dotenv
 from datetime import datetime
 from typing import List, Dict, Any
 import logging
+import os
+from dotenv import load_dotenv
+
+# Load variables from .env file
+load_dotenv()
+
+# Reading variables from the environment
+SELF_DB_NAME = os.getenv("MONGO_DB_NAME")
+SELF_COLLECTION_DATA = os.getenv("MONGO_COLLECTION_DATA")
+
+# Verify that the values exist
+if not SELF_DB_NAME or not SELF_COLLECTION_DATA :
+    raise ValueError("❌ SELF_DB_NAME or SELF_COLLECTION_DATA is missing in .env file")
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -24,8 +39,8 @@ class MongoDBHandler:
         """Connect to MongoDB"""
         try:
             self.client = MongoClient(self.connection_string)
-            self.db = self.client.TeamC
-            self.collection = self.db.data
+            self.db = SELF_DB_NAME
+            self.collection = SELF_COLLECTION_DATA
             
             # Test connection
             self.client.admin.command('ping')
@@ -55,7 +70,7 @@ class MongoDBHandler:
         if not messages:
             logger.warning("⚠️ No messages to save")
             return False
-          #Array of Objects  
+        #Array of Objects  
         try:
             # Convert messages to MongoDB format
             mongo_docs = []
@@ -92,8 +107,8 @@ class MongoDBHandler:
             count = self.collection.count_documents({})
             return {
                 "total_documents": count,
-                "collection_name": "data",
-                "database_name": "TeamC"
+                "collection_name": f"{SELF_DB_NAME}",
+                "database_name": f"{SELF_COLLECTION_DATA}"
             }
         except Exception as e:
             logger.error(f"❌ Failed to get collection stats: {e}")

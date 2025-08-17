@@ -49,7 +49,6 @@ telegram_session.*
 # ===============================
 # Environment Variables
 # ===============================
-.env
 .venv
 env/
 venv/

@@ -12,6 +12,7 @@ import signal
 import sys
 import time
 import os
+from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional
 import logging
@@ -51,27 +52,38 @@ console_handler.setFormatter(console_formatter)
 logger.addHandler(file_handler)
 logger.addHandler(console_handler)
 
+# Load variables from an .env file
+load_dotenv()
+
+# Reading variables from the environment
+SELF_API_ID = int(os.getenv("TELEGRAM_API_ID"))
+
+SELF_CHANNELS = os.getenv("TELEGRAM_CHANNELS", "")
+CHANNEL_LIST = [ch.strip() for ch in SELF_CHANNELS.split(",") if ch.strip()]
+
+SELF_CHECK_INTERVAL = int(os.getenv("TELEGRAM_CHECK_INTERVAL"))
+SELF_MESSAGE_LIMIT = int(os.getenv("TELEGRAM_MESSAGE_LIMIT"))       
+
+# Verify that the values exist
+if not CHANNEL_LIST or not SELF_CHECK_INTERVAL or not SELF_MESSAGE_LIMIT :
+    raise ValueError("❌ CHANNEL LIST or CHECK INTERVAL or MESSAGE LIMIT is missing in .env file")
+
+
 class EnhancedTelegramMonitor:
     """Enhanced continuous Telegram monitoring system"""
     
     def __init__(self):
         # Telegram API credentials
-        self.API_ID = 26389903
+        self.API_ID = SELF_API_ID
         self.API_HASH = "b7f2c7e63f08653def683baef7c2334b"
         self.PHONE_NUMBER = "+970595754335"
         
         # Monitoring settings
-        self.CHECK_INTERVAL = 300  # 5 minutes 300ث
-        self.MESSAGE_LIMIT = 5
+        self.CHECK_INTERVAL = SELF_CHECK_INTERVAL
+        self.MESSAGE_LIMIT = SELF_MESSAGE_LIMIT
         
         # Channels to monitor
-        self.channels = [
-            "https://t.me/a7walstreet",
-            "https://t.me/road_jehad",
-            "https://t.me/KfM_zDDk8A9mMzA0",
-            "https://t.me/ahwalaltreq",
-            "https://t.me/Palestine_Streets_Radar"
-        ]
+        self.channels = CHANNEL_LIST
         
         # State management
         self.state_file = "monitor_state.json"
