@@ -9,19 +9,18 @@ Improved version with better error handling, logging, and monitoring capabilitie
 import asyncio
 import json
 import signal
-import sys
 import time
 import os
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any
 import logging
 from pathlib import Path
 
 # Import our custom modules
 from multi_channel_collector import MultiChannelTelegramCollector
 from mongodb_handler import MongoDBHandler
-from secrets import APP_HASH, PHONE_NUMBER
+from appsecrets import APP_HASH, PHONE_NUMBER
 
 
 # Configure logging
@@ -417,9 +416,9 @@ class EnhancedTelegramMonitor:
         except Exception as e:
             return f"Error: {str(e)[:30]}"
     
-    async def start_monitoring(self):
-        """Start the enhanced monitoring process"""
-        logger.info("🚀 Enhanced Telegram Monitor Starting...")
+    async def start_polling_telegram_data(self):
+        """Start the telegram consumer process"""
+        logger.info("🚀 Telegram Consumer Starting...")
         logger.info("=" * 60)
         logger.info(f"📅 Start time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         logger.info(f"⏰ Check interval: {self.CHECK_INTERVAL} seconds ({self.CHECK_INTERVAL//60} minutes)")
@@ -511,25 +510,6 @@ class EnhancedTelegramMonitor:
         
         logger.info("✅ Cleanup completed")
 
-async def main():
-    """Main entry point"""
-    monitor = EnhancedTelegramMonitor()
-    
-    try:
-        success = await monitor.start_monitoring()
-        return 0 if success else 1
-    except Exception as e:
-        logger.error(f"❌ Fatal error: {e}")
-        return 1
-
 if __name__ == "__main__":
-    # Run the monitor
-    try:
-        exit_code = asyncio.run(main())
-        sys.exit(exit_code)
-    except KeyboardInterrupt:
-        logger.info("🛑 Program interrupted by user")
-        sys.exit(0)
-    except Exception as e:
-        logger.error(f"❌ Unexpected error: {e}")
-        sys.exit(1)
+    monitor = EnhancedTelegramMonitor()
+    asyncio.run(monitor.start_polling_telegram_data())

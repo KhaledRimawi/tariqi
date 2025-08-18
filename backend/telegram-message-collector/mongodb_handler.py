@@ -3,10 +3,9 @@ MongoDB Database Handler for Telegram Message Collector
 """
 from pymongo import MongoClient
 from dotenv import load_dotenv
-from datetime import datetime
 from typing import List, Dict, Any
 import logging
-from secrets import MONGO_CONNECTION_STRING
+from appsecrets import MONGO_CONNECTION_STRING
 import os
 from dotenv import load_dotenv
 

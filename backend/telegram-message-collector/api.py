@@ -8,15 +8,11 @@ import os
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify
 from flask_pymongo import PyMongo
-from bson import ObjectId
-from datetime import datetime, timedelta
+from datetime import datetime
 from flask_cors import CORS
 from geo_utils import haversine
 from urllib.parse import unquote
-from mongodb_handler import MongoDBHandler
-import json
-from urllib.parse import unquote
-from secrets import MONGO_CONNECTION_STRING
+from appsecrets import MONGO_CONNECTION_STRING
 
 # Loads values from .env file
 load_dotenv() 
@@ -417,16 +413,21 @@ def get_closest_checkpoint():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# ---------------- Server ----------------
-if __name__ == '__main__':
 
+# ---------------- Server Function ----------------
+def start_api_server(port=None, host=None):
+    """Start the API server using environment variables as defaults"""
+    # Use environment variables if no parameters provided
+    if port is None:
+        port = PORT
+    if host is None:
+        host = HOST
     print("🚀 Starting Unified API Server...")
-    print(f"🌐 API will run on: http://{HOST}:{PORT}")
+    print(f"🌐 API will run on: http://{host}:{port}")
     print("\n📋 All Endpoints Available:")
     print("  📊 Data Collection & Search")
     print("  📍 Location & Position Services")  
     print("  🔍 Checkpoint Monitoring")
     print("  🗺️ Geospatial Queries")
     print("\n🤝 Team Integration Ready!")
-
-    app.run(host=HOST, port=PORT, debug=DEBUG)
+    app.run(host=host, port=port, debug=False, use_reloader=False)

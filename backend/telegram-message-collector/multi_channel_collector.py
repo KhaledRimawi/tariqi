@@ -21,7 +21,7 @@ from telethon.tl.types import Channel, Chat
 
 # Import MongoDB handler
 from mongodb_handler import MongoDBHandler
-from secrets import APP_HASH , PHONE_NUMBER , get_session_file, SECRET_NAMES , SESSION_FILE_PATH
+from appsecrets import APP_HASH , PHONE_NUMBER , get_session_file, SECRET_NAMES , SESSION_FILE_PATH
 
 # Loads values from .env file
 load_dotenv() 
