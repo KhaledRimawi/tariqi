@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from datetime import datetime
 from typing import List, Dict, Any
 import logging
+from secrets import MONGO_CONNECTION_STRING
 import os
 from dotenv import load_dotenv
 
@@ -30,7 +31,7 @@ class MongoDBHandler:
     
     def __init__(self):
         """Initialize MongoDB connection"""
-        self.connection_string = "mongodb+srv://AiTeamC:AI%23TeamC123@cluster0.904co68.mongodb.net/TeamC?retryWrites=true&w=majority"
+        self.connection_string = MONGO_CONNECTION_STRING
         self.client = None
         self.db = None
         self.collection = None

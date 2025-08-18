@@ -16,6 +16,7 @@ from urllib.parse import unquote
 from mongodb_handler import MongoDBHandler
 import json
 from urllib.parse import unquote
+from secrets import MONGO_CONNECTION_STRING
 
 # Loads values from .env file
 load_dotenv() 
@@ -24,7 +25,7 @@ app = Flask(__name__)
 CORS(app)
 
 # MongoDB Atlas Connection
-app.config["MONGO_URI"] = "mongodb+srv://AiTeamC:AI%23TeamC123@cluster0.904co68.mongodb.net/TeamC?retryWrites=true&w=majority"
+app.config["MONGO_URI"] = MONGO_CONNECTION_STRING
 mongo = PyMongo(app)
 
 
@@ -421,7 +422,6 @@ if __name__ == '__main__':
 
     print("🚀 Starting Unified API Server...")
     print(f"🌐 API will run on: http://{HOST}:{PORT}")
-
     print("\n📋 All Endpoints Available:")
     print("  📊 Data Collection & Search")
     print("  📍 Location & Position Services")  

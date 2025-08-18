@@ -5,7 +5,6 @@ Multi-Channel Telegram Message Collector
 This script collects messages from multiple Telegram channels/groups simultaneously,
 merges them chronologically, and saves them to MongoDB.
 """
-
 import asyncio
 import csv
 import os
@@ -22,6 +21,7 @@ from telethon.tl.types import Channel, Chat
 
 # Import MongoDB handler
 from mongodb_handler import MongoDBHandler
+from secrets import APP_HASH , PHONE_NUMBER , get_session_file, SECRET_NAMES , SESSION_FILE_PATH
 
 # Loads values from .env file
 load_dotenv() 
@@ -31,7 +31,7 @@ class MultiChannelTelegramCollector:
     Enhanced Telegram collector that supports multiple channels/groups
     """
     
-    def __init__(self, api_id: int, api_hash: str, phone_number: str = None, session_name: str = 'telegram_session'):
+    def __init__(self, api_id: int, api_hash: str, phone_number: str = None):
         """
         Initialize the Telegram client.
         
@@ -44,9 +44,9 @@ class MultiChannelTelegramCollector:
         self.api_id = api_id
         self.api_hash = api_hash
         self.phone_number = phone_number
-        self.session_name = session_name
-        self.client = TelegramClient(session_name, api_id, api_hash)
         
+        self.client = TelegramClient(SESSION_FILE_PATH, api_id, api_hash)
+      
         # Enhanced location mapping for Palestinian checkpoints and cities
         # Format: 'checkpoint_name': {'city': 'actual_city_name', 'governorate': 'governorate'}
         self.location_mapping = {
@@ -498,12 +498,17 @@ async def main():
 
     # Configuration
     API_ID = API__ID
-    API_HASH = "b7f2c7e63f08653def683baef7c2334b"
-
+    API_HASH = APP_HASH
+    
     print("🚀 Multi-Channel Telegram Message Collector")
     print("=" * 50)
+
+    session_file_path = get_session_file(SECRET_NAMES)
+    if not os.path.exists(session_file_path) or os.path.getsize(session_file_path) == 0:
+     raise RuntimeError(f"❌ Session file missing or empty: {session_file_path}")
+
     
-    collector = MultiChannelTelegramCollector(API_ID, API_HASH)
+    collector = MultiChannelTelegramCollector(API_ID, API_HASH , PHONE_NUMBER )
     
     try:
         # Authenticate

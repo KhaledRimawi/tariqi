@@ -21,6 +21,8 @@ from pathlib import Path
 # Import our custom modules
 from multi_channel_collector import MultiChannelTelegramCollector
 from mongodb_handler import MongoDBHandler
+from secrets import APP_HASH, PHONE_NUMBER
+
 
 # Configure logging
 log_dir = Path("logs")
@@ -75,8 +77,8 @@ class EnhancedTelegramMonitor:
     def __init__(self):
         # Telegram API credentials
         self.API_ID = SELF_API_ID
-        self.API_HASH = "b7f2c7e63f08653def683baef7c2334b"
-        self.PHONE_NUMBER = "+970595754335"
+        self.API_HASH = APP_HASH
+        self.PHONE_NUMBER = PHONE_NUMBER   
         
         # Monitoring settings
         self.CHECK_INTERVAL = SELF_CHECK_INTERVAL

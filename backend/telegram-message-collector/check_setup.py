@@ -67,8 +67,6 @@ def main():
     
     print("\n📋 Your configuration:")
     print(f"API ID: {API_ID}")
-    print(f"API Hash: b7f2c7e63f08653def683baef7c2334b")
-    
     print("\n📝 Next steps:")
     print("1. Run the main script: python telegram_collector.py")
     print("2. Enter your phone number when prompted")
