@@ -5,6 +5,8 @@ import Home from './pages/Home';
 import About from './pages/About';
 import MapPage from './pages/MapPage';
 import DestinationSearch from './pages/DestinationSearch';
+import ChatBotPage from './pages/ChatBotPage'; 
+import FeedbackPage from './pages/FeedbackPage'; // ✅ Import FeedbackPage
 
 const App = () => {
   return (
@@ -15,6 +17,8 @@ const App = () => {
         <Route path="/about" element={<About />} />
         <Route path="/map" element={<MapPage />} />
         <Route path="/destination-search" element={<DestinationSearch />} />
+        <Route path="/chatbot" element={<ChatBotPage />} />
+        <Route path="/feedback" element={<FeedbackPage />} /> {/* ✅ New Feedback route */}
       </Routes>
     </Router>
   );

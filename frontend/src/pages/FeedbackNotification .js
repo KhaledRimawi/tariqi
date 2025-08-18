@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import FeedbackPopup from "./FeedbackPopup";
+import FeedbackPopup from "./FeedbackPage";
 
 const FeedbackNotification  = () => {
   const [showFeedback, setShowFeedback] = useState(false);

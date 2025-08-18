@@ -1,0 +1,17 @@
+.botui-container {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.botui-message-content {
+  background: #045d75;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  max-width: 80%;
+}
+
+.botui-message-content.human {
+  background: #28a745;
+}
