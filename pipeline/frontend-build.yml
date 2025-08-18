@@ -8,8 +8,8 @@ steps:
     versionSpec: '20.x'
   displayName: 'Install Node.js'
 
-- script: |
-    cd frontend
-    npm install
-    npm run build
-  displayName: 'npm install and build'
+# - script: |
+#     cd frontend
+#     npm install
+#     npm run build
+#   displayName: 'npm install and build'
