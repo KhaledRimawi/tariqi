@@ -1,0 +1,15 @@
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '20.x'
+  displayName: 'Install Node.js'
+
+- script: |
+    cd Frontend
+    npm install
+    npm run build
+  displayName: 'npm install and build'
