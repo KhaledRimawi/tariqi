@@ -431,3 +431,6 @@ def start_api_server(port=None, host=None):
     print("  🗺️ Geospatial Queries")
     print("\n🤝 Team Integration Ready!")
     app.run(host=host, port=port, debug=False, use_reloader=False)
+
+if __name__ == "__main__":
+    start_api_server()
