@@ -60,7 +60,7 @@ pip install -r requirements.txt
 ```
 
 ## 🔑 Azure Key Vault Setup
-
+### 1- Using DefaultAzureCredential (old method)
 Login to Azure:
 
 ```bash
@@ -75,6 +75,41 @@ Access your Key Vault secrets (optional):
 az keyvault secret list --vault-name <your-keyvault-name>
 ```
 The backend retrieves secrets via appsecrets.py.
+
+
+### 2- Using ClientSecretCredential (old method)
+This method requires an Azure AD App Registration with Key Vault access.
+You must save the App Registration client secret value as an environment variable on your PC.
+
+Steps:
+
+1. Go to your Key Vault and find the secret named [AppSecret](https://portal.azure.com/#@asaltech1.onmicrosoft.com/resource/subscriptions/2e86f627-8cc4-485d-ba56-95d274edbddd/resourceGroups/T-Project-C/providers/Microsoft.KeyVault/vaults/roads-condition-kv/secrets) 
+
+2. Copy the secret value (not the Secret Identifier).
+
+3. Save it in your PC environment variables.
+
+### Setting the AppSecret Environment Variable
+
+### Approach 1 : 
+PowerShell (Windows)
+```powershell
+setx AppSecret "<secret-value>"
+```
+### Approach 2 : 
+Windows (User Environment Variable)
+
+- Press Win + R → type sysdm.cpl → Enter.
+
+- Go to Advanced → Environment Variables.
+
+- Under User variables, click New.
+
+- Enter the Name: AppSecret and the Value: (paste the Key Vault AppSecret value here)
+
+- Save and restart your terminal/IDE.
+
+
 
 ## Running the Backend
 

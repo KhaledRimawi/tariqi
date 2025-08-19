@@ -1,13 +1,20 @@
 import base64
-from azure.identity import DefaultAzureCredential 
+import os
+from azure.identity import ClientSecretCredential
 from azure.keyvault.secrets import SecretClient
 
 
 KEY_VAULT_URL = "https://roads-condition-kv.vault.azure.net/"
 # logging.basicConfig(level=logging.DEBUG)
 
-credential = DefaultAzureCredential()
+credential = ClientSecretCredential(
+    tenant_id="b2256c9a-8480-4cc9-a625-206fd047b910", 
+    client_id="6ee8d727-1675-4c4a-b214-6c49c6affee3", 
+    client_secret=(os.getenv("AppSecret"))            # now read from env
+)
+
 secret_client = SecretClient(vault_url=KEY_VAULT_URL, credential=credential)
+
 
 SECRET_NAMES = [
     "telegramSessionPart1",
