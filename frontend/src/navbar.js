@@ -36,7 +36,7 @@ const Navbar = () => {
           </NavLink>
         </li>
         <li>
-          <NavLink to="/chatbot" className={({ isActive }) => isActive ? "active-link" : ""}>
+          <NavLink to="/voice-chat-bot" className={({ isActive }) => isActive ? "active-link" : ""}>
             Chat Bot
           </NavLink>
         </li>

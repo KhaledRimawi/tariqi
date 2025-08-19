@@ -2,6 +2,7 @@ import React from 'react';
 import Location from './Location';
 import './Home.css';
 
+
 const Home = () => {
   return (
     <div className="home-container">
