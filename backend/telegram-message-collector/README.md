@@ -18,8 +18,11 @@ telegram-message-collector/
 ├── multi_channel_collector.py # Collects messages from multiple channels
 ├── telegram_consumer.py    # Telegram client consumer logic
 ├── requirements.txt        # Python dependencies
-└── .env                    # Local environment variables
+├── .env                    # Local environment variables
+├── format.py               # Formats code with black and isort
+└── build.py                # Runs flake8 and compileall (lint + build check)
 ```
+
 ---
 
 ## 🚀 Prerequisites
@@ -32,8 +35,9 @@ Make sure you have installed the following:
 - MongoDB (local or cloud instance, e.g., MongoDB Atlas)
 
 ---
+
 ### Backend
----
+
 - **Language:** Python 3
 - **Framework:** Flask
 - **Database:** MongoDB (using MongoDB Atlas)
@@ -43,77 +47,120 @@ Make sure you have installed the following:
   - **python-dotenv:** Manage environment variables
   - **Flask-CORS:** Handle Cross-Origin Resource Sharing for the API
 
+---
+
 ## ⚙️ Setup
 
-Clone the repository:
+### 1. Clone the Repository
 
 ```bash
 git clone <your-repo-url>
 cd telegram-message-collector
-
 ```
 
-## Install Dependencies
+### 2. Install Runtime Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
+### 3. Install Developer Tools (One-Time Only)
+
+To enable formatting and linting tools locally:
+
+```bash
+pip install flake8 black isort
+```
+
+---
+
+## 🧼 Code Formatting
+
+Use the `format.py` script to format your Python code automatically:
+
+```bash
+python format.py
+```
+
+This script runs:
+
+- `black` – formats code for consistency
+- `isort` – organizes import statements
+
+➡️ **Please run this regularly**, especially before committing changes.
+
+---
+
+## 🧪 Linting & Build Check
+
+Use the `build.py` script to:
+
+- Lint your code with `flake8`
+- Perform a syntax check with `compileall`
+
+```bash
+python build.py
+```
+
+✅ This helps catch issues early and should match the checks run in CI/CD.
+
+---
+
 ## 🔑 Azure Key Vault Setup
-### 1- Using DefaultAzureCredential (old method)
+
+### Option 1 – Using `DefaultAzureCredential` (older method)
+
 Login to Azure:
 
 ```bash
 az login
 ```
-Set subscription: choose the number of the subscription or use the following command :
+
+Set subscription (choose number or use command):
+
 ```bash
 az account set --subscription "<subscription-id>"
 ```
-Access your Key Vault secrets (optional):
+
+(Optional) View secrets:
+
 ```bash
 az keyvault secret list --vault-name <your-keyvault-name>
 ```
-The backend retrieves secrets via appsecrets.py.
 
+Secrets are fetched automatically via `appsecrets.py`.
 
-### 2- Using ClientSecretCredential (old method)
-This method requires an Azure AD App Registration with Key Vault access.
-You must save the App Registration client secret value as an environment variable on your PC.
+---
 
-Steps:
+### Option 2 – Using `ClientSecretCredential` (older method)
 
-1. Go to your Key Vault and find the secret named [AppSecret](https://portal.azure.com/#@asaltech1.onmicrosoft.com/resource/subscriptions/2e86f627-8cc4-485d-ba56-95d274edbddd/resourceGroups/T-Project-C/providers/Microsoft.KeyVault/vaults/roads-condition-kv/secrets) 
+This requires an Azure AD App Registration.
 
-2. Copy the secret value (not the Secret Identifier).
+1. Go to your Key Vault and find the secret named `AppSecret`.
+2. Copy the **secret value** (not the identifier).
+3. Save it to your **local environment variables**.
 
-3. Save it in your PC environment variables.
+#### Set Environment Variable:
 
-### Setting the AppSecret Environment Variable
-
-### Approach 1 : 
-PowerShell (Windows)
+**PowerShell:**
 ```powershell
 setx AppSecret "<secret-value>"
 ```
-### Approach 2 : 
-Windows (User Environment Variable)
 
-- Press Win + R → type sysdm.cpl → Enter.
+**Windows GUI:**
+- Win + R → `sysdm.cpl`
+- Advanced → Environment Variables
+- Add: `AppSecret = <your-secret>`
+- Restart your terminal or IDE
 
-- Go to Advanced → Environment Variables.
+---
 
-- Under User variables, click New.
+## ▶️ Running the Backend
 
-- Enter the Name: AppSecret and the Value: (paste the Key Vault AppSecret value here)
+To start the backend server locally:
 
-- Save and restart your terminal/IDE.
-
-
-
-## Running the Backend
-
-Start the backend:
 ```bash
 python main.py
 ```
+
+Make sure you’ve set up your `.env` file and have access to the required secrets from Azure Key Vault.

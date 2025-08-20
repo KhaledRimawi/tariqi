@@ -1,16 +1,16 @@
 import base64
 import os
+
 from azure.identity import ClientSecretCredential
 from azure.keyvault.secrets import SecretClient
-
 
 KEY_VAULT_URL = "https://roads-condition-kv.vault.azure.net/"
 # logging.basicConfig(level=logging.DEBUG)
 
 credential = ClientSecretCredential(
-    tenant_id="b2256c9a-8480-4cc9-a625-206fd047b910", 
-    client_id="6ee8d727-1675-4c4a-b214-6c49c6affee3", 
-    client_secret=(os.getenv("AppSecret"))            # now read from env
+    tenant_id="b2256c9a-8480-4cc9-a625-206fd047b910",
+    client_id="6ee8d727-1675-4c4a-b214-6c49c6affee3",
+    client_secret=(os.getenv("AppSecret")),  # now read from env
 )
 
 secret_client = SecretClient(vault_url=KEY_VAULT_URL, credential=credential)
@@ -19,16 +19,18 @@ secret_client = SecretClient(vault_url=KEY_VAULT_URL, credential=credential)
 SECRET_NAMES = [
     "telegramSessionPart1",
     "telegramSessionPart2",
-    "telegramSessionPart3"
+    "telegramSessionPart3",
 ]
 
-def get_secret(secret_name: str) :
+
+def get_secret(secret_name: str):
     """Fetch secret from Azure Key Vault"""
     try:
         secret = secret_client.get_secret(secret_name)
         return secret.value
     except Exception as e:
         raise RuntimeError(f"Unable to fetch secret '{secret_name}': {e}")
+
 
 def get_session_file(secret_names: list, session_path: str = "telegram_session.session"):
     full_bytes = b""
@@ -52,4 +54,3 @@ MONGO_CONNECTION_STRING = secret_client.get_secret("mongodbConnectionString").va
 PHONE_NUMBER = secret_client.get_secret("PhoneNumber").value
 
 print("✅ Secrets fetched: APP_HASH, PHONE_NUMBER, MONGO_CONNECTION_STRING")
-

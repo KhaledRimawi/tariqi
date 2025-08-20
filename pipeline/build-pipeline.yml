@@ -1,0 +1,39 @@
+trigger: none # Disable CI trigger on push
+
+pr:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '20.x'
+  displayName: 'Install Node.js'
+
+- script: |
+    cd frontend
+    npm install --legacy-peer-deps
+    npm run build
+  displayName: 'npm install and build'
+
+# 🐍 Python: Install and Lint + Compile
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.11'
+  displayName: 'Use Python 3.11'
+
+- script: |
+    cd backend/telegram-message-collector
+    python -m pip install --upgrade pip
+    pip install -r requirements.txt
+    pip install flake8
+  displayName: 'Install dependencies and flake8'
+
+- script: |
+    cd backend/telegram-message-collector
+    python build.py
+  displayName: 'Run Python build script'
