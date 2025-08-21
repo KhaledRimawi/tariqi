@@ -1,7 +1,7 @@
 # build.py
+import os
 import subprocess
 import sys
-import os
 
 TARGET = "."
 

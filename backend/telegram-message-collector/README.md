@@ -132,7 +132,7 @@ Secrets are fetched automatically via `appsecrets.py`.
 
 ---
 
-### Option 2 – Using `ClientSecretCredential` (older method)
+### Option 2 – Using `ClientSecretCredential` 
 
 This requires an Azure AD App Registration.
 
@@ -141,14 +141,14 @@ This requires an Azure AD App Registration.
 3. Save it to your **local environment variables**.
 
 #### Set Environment Variable:
-
+you can use : 
 **PowerShell:**
 ```powershell
 setx AppSecret "<secret-value>"
 ```
-
+or 
 **Windows GUI:**
-- Win + R → `sysdm.cpl`
+- Win + R → `sysdm.cpl` or simply search for `Environment variables`
 - Advanced → Environment Variables
 - Add: `AppSecret = <your-secret>`
 - Restart your terminal or IDE

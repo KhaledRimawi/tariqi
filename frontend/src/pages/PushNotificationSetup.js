@@ -28,7 +28,7 @@ export default function PushNotificationSetup() {
       if (permission === "granted") {
         console.log("✅ Notification permission granted.");
         await notifyNearbyCheckpoints(); 
-        await sendNotificationForClosedCheckpoints();
+        //await sendNotificationForClosedCheckpoints();
         
       } else {
         console.log("❌ Permission denied");
@@ -66,52 +66,37 @@ async function sendNotificationForClosedCheckpoints() {
   }
 }
 
-
 async function notifyNearbyCheckpoints() {
   try {
     const position = await getLocation();
     const userLat = position.latitude;
     const userLng = position.longitude;
-    
 
     console.log("📍 Sending user location to backend:", userLat, userLng);
 
-    const res = await fetch("http://127.0.0.1:5000/api/near_location", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        latitude: userLat,
-        longitude: userLng
-      })
-    });
+    const res = await fetch(
+      `${process.env.REACT_APP_BACKEND_URL}/api/near_location?latitude=${userLat}&longitude=${userLng}`
+    );
 
-    const nearbyCheckpoints = await res.json();
-    console.log("✅ Nearby checkpoints received:", nearbyCheckpoints);
+    const data = await res.json();
+    console.log("✅ Nearby checkpoints received:", data);
 
     const reg = await navigator.serviceWorker.getRegistration();
-    if (!reg) {
-      console.warn("⚠️ No service worker registration found");
-      return;
-    }
+    if (!reg) return;
 
-    if (nearbyCheckpoints.length > 0) {
-      for (const cp of nearbyCheckpoints) {
+    if (data.count > 0) {
+      for (const cp of data.checkpoints) {
         const title = "🚧 نقطة تفتيش قريبة منك";
         const options = {
           body: `🔘 المعبر: ${cp.checkpoint}\n📍 المدينة: ${cp.city}\n📡 الحالة: ${cp.status || "غير معروف"}\n🧭 الاتجاه: ${cp.direction || "غير معروف"}\n📏 البعد: ${cp.distance_km} كم\n🕒 ${new Date(cp.updatedAt).toLocaleString("ar-EG")}`,
           requireInteraction: true
-
         };
-
-        console.log("📣 Triggering notification:", title, options);
         reg.showNotification(title, options);
       }
     } else {
-      console.log("ℹ️ No nearby checkpoints found. Sending fallback notification.");
-
       reg.showNotification("🚫 لا توجد نقاط تفتيش قريبة", {
         body: "📍 لم يتم العثور على نقاط تفتيش ضمن موقعك الحالي.",
-        requireInteraction: true,
+        requireInteraction: true
       });
     }
   } catch (err) {

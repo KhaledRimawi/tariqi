@@ -1,5 +1,6 @@
 import React from 'react';
 import Location from './Location';
+import PushNotificationSetup from './PushNotificationSetup';
 import './Home.css';
 
 
@@ -15,6 +16,8 @@ const Home = () => {
 
         <Location />
       </div>
+      {/* Notification setup */}
+      <PushNotificationSetup />
     </div>
   );
 };

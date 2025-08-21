@@ -441,47 +441,48 @@ def add_locations():
 @app.route("/api/near_location", methods=["GET"])
 def get_nearby_checkpoints():
     try:
-        user_lat = request.args.get("lat", type=float)
-        user_lng = request.args.get("lng", type=float)
-        radius = request.args.get("radius", default=10, type=float)
+        user_lat = request.args.get("latitude", type=float)
+        user_lng = request.args.get("longitude", type=float)
 
         if user_lat is None or user_lng is None:
-            return jsonify({"error": "Missing lat/lng parameters"}), 400
+            return jsonify({"error": "Missing latitude or longitude"}), 400
+
+        radius_km = RADIUS_KM  # read from .env
 
         checkpoints = list(location_collection.find({"lat": {"$exists": True}, "lng": {"$exists": True}}))
+
         nearby = []
         for cp in checkpoints:
             cp_lat = cp.get("lat")
             cp_lng = cp.get("lng")
+            if cp_lat is None or cp_lng is None:
+                continue
+
             dist = haversine(user_lat, user_lng, cp_lat, cp_lng)
-            if dist <= radius:
-                status_doc = data_collection.find_one(
-                    {
-                        "checkpoint_name": cp.get("checkpoint"),
-                        "city_name": cp.get("city"),
-                    },
-                    sort=[("message_date", -1)],
-                )
-                merged = {
-                    "checkpoint": cp.get("checkpoint"),
-                    "city": cp.get("city"),
-                    "latitude": cp_lat,
-                    "longitude": cp_lng,
-                    "distance_km": round(dist, 2),
-                }
-                if status_doc:
-                    merged["status"] = status_doc.get("status")
-                    merged["direction"] = status_doc.get("direction")
-                    merged["updatedAt"] = status_doc.get("message_date")
-                nearby.append(merged)
-        return jsonify(
-            {
-                "success": True,
-                "count": len(nearby),
-                "checkpoints": nearby,
-                "team_info": "🗺️ Position Team: Nearby checkpoints within specified radius",
+            if dist > radius_km:
+                continue
+
+            status_doc = data_collection.find_one(
+                {"checkpoint_name": cp.get("checkpoint"), "city_name": cp.get("city")}, sort=[("message_date", -1)]
+            )
+
+            merged = {
+                "checkpoint": cp.get("checkpoint"),
+                "city": cp.get("city"),
+                "latitude": cp_lat,
+                "longitude": cp_lng,
+                "distance_km": round(dist, 2),
             }
-        )
+
+            if status_doc:
+                merged["status"] = status_doc.get("status")
+                merged["direction"] = status_doc.get("direction")
+                merged["updatedAt"] = status_doc.get("message_date")
+
+            nearby.append(merged)
+
+        return jsonify({"success": True, "count": len(nearby), "checkpoints": nearby})
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

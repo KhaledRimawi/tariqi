@@ -30,7 +30,6 @@ const Location = () => {
         setError(err.message);
       });
   }, []);
-
   if (error) return <p style={{ color: 'red' }}>{error}</p>;
 
   return (
