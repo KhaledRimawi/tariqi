@@ -6,7 +6,6 @@ Includes search, filtering, geo-based queries, and MongoDB Atlas connection
 
 import os
 from datetime import datetime
-from urllib.parse import unquote
 
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
@@ -77,227 +76,17 @@ def home():
                 "position_team": "Geospatial & location services",
             },
             "endpoints": {
-                "data_collection": [
-                    "/api/telegram-messages",
-                    "/api/data",
-                    "/api/data/show",
-                    "/api/data/city/<city>",
-                    "/api/data/checkpoint/<checkpoint>",
-                    "/api/data/status/<status>",
-                    "/api/data/search",
-                ],
-                "search_filtering": [
-                    "/api/search/city/<city_name>",
-                    "/api/search/checkpoint/<checkpoint_name>",
-                    "/api/search/status/<status>",
-                    "/api/checkpoints/conditions",
-                    "/api/checkpoints/filter",
-                ],
                 "position_location": [
-                    "/api/locations",
                     "/api/near_location",
                     "/api/closest-checkpoint",
                     "/api/checkpoints/merged",
                 ],
-                "health": ["/api/health", "/api/latest"],
             },
         }
     )
 
 
-@app.route("/api/health")
-def health():
-    try:
-        count_data = data_collection.count_documents({})
-        count_loc = location_collection.count_documents({})
-        return jsonify(
-            {
-                "status": "healthy",
-                "mongodb": "connected",
-                "total_data_documents": count_data,
-                "total_location_documents": count_loc,
-            }
-        )
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
-# ---------------- Telegram Messages ----------------
-@app.route("/api/telegram-messages")
-def get_messages():
-    try:
-        messages = list(data_collection.find().sort("_id", -1))
-        messages = [prepare_doc(m) for m in messages]
-        return jsonify({"success": True, "count": len(messages), "messages": messages})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
-@app.route("/api/latest")
-def get_latest():
-    try:
-        messages = list(
-            data_collection.find({"checkpoint_name": {"$nin": [None, "غير محدد"]}}).sort("_id", -1).limit(5)
-        )
-        messages = [prepare_doc(m) for m in messages]
-        return jsonify(
-            {
-                "success": True,
-                "count": len(messages),
-                "latest_checkpoints": messages,
-            }
-        )
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
-# ---------------- Search Endpoints ----------------
-@app.route("/api/search/city/<city_name>")
-def search_by_city(city_name):
-    try:
-        city_name = unquote(city_name)
-        messages = list(
-            data_collection.find({"city_name": {"$regex": city_name, "$options": "i"}}).sort("_id", -1).limit(50)
-        )
-        messages = [prepare_doc(m) for m in messages]
-        return jsonify(
-            {
-                "success": True,
-                "search_type": "city",
-                "search_term": city_name,
-                "count": len(messages),
-                "messages": messages,
-            }
-        )
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
-@app.route("/api/search/checkpoint/<checkpoint_name>")
-def search_by_checkpoint(checkpoint_name):
-    try:
-        checkpoint_name = unquote(checkpoint_name)
-        messages = list(
-            data_collection.find(
-                {
-                    "checkpoint_name": {
-                        "$regex": checkpoint_name,
-                        "$options": "i",
-                    }
-                }
-            )
-            .sort("_id", -1)
-            .limit(50)
-        )
-        messages = [prepare_doc(m) for m in messages]
-        return jsonify(
-            {
-                "success": True,
-                "search_type": "checkpoint",
-                "search_term": checkpoint_name,
-                "count": len(messages),
-                "messages": messages,
-            }
-        )
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
-@app.route("/api/search/status/<status>")
-def search_by_status(status):
-    try:
-        status = unquote(status)
-        messages = list(data_collection.find({"status": {"$regex": status, "$options": "i"}}).sort("_id", -1).limit(50))
-        messages = [prepare_doc(m) for m in messages]
-        return jsonify(
-            {
-                "success": True,
-                "search_type": "status",
-                "search_term": status,
-                "count": len(messages),
-                "messages": messages,
-            }
-        )
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
-# ---------------- Checkpoint Conditions ----------------
-@app.route("/api/checkpoints/conditions")
-def get_checkpoint_conditions():
-    try:
-        city = request.args.get("city")
-        status = request.args.get("status")
-        direction = request.args.get("direction")
-        checkpoint = request.args.get("checkpoint")
-
-        match_stage = {
-            "checkpoint_name": {"$nin": [None, "غير محدد"]},
-            "status": {"$nin": [None, ""]},
-        }
-        if city:
-            match_stage["city_name"] = {"$regex": city, "$options": "i"}
-        if status:
-            match_stage["status"] = {"$regex": status, "$options": "i"}
-        if direction:
-            match_stage["direction"] = {"$regex": direction, "$options": "i"}
-        if checkpoint:
-            match_stage["checkpoint_name"] = {
-                "$regex": checkpoint,
-                "$options": "i",
-            }
-
-        pipeline = [
-            {"$match": match_stage},
-            {"$sort": {"_id": -1}},
-            {
-                "$group": {
-                    "_id": "$checkpoint_name",
-                    "latest_status": {"$first": "$status"},
-                    "latest_message": {"$first": "$original_message"},
-                    "city": {"$first": "$city_name"},
-                    "last_update": {"$first": "$message_date"},
-                    "direction": {"$first": "$direction"},
-                }
-            },
-            {"$sort": {"_id": 1}},
-        ]
-        conditions = list(data_collection.aggregate(pipeline))
-        return jsonify(
-            {
-                "success": True,
-                "count": len(conditions),
-                "checkpoints": conditions,
-            }
-        )
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
-@app.route("/api/checkpoints/filter")
-def filter_checkpoints():
-    try:
-        city = request.args.get("city")
-        status = request.args.get("status")
-        checkpoint = request.args.get("checkpoint")
-        limit = int(request.args.get("limit", 20))
-
-        query = {"checkpoint_name": {"$nin": [None, "غير محدد"]}}
-        if city:
-            query["city_name"] = {"$regex": city, "$options": "i"}
-        if status:
-            query["status"] = {"$regex": status, "$options": "i"}
-        if checkpoint:
-            query["checkpoint_name"] = {"$regex": checkpoint, "$options": "i"}
-
-        messages = list(data_collection.find(query).sort("_id", -1).limit(limit))
-        messages = [prepare_doc(m) for m in messages]
-        return jsonify({"success": True, "count": len(messages), "messages": messages})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
-# ---------------- Merged Checkpoints with Location ----------------
+# ---------------- User on the frontend (Map.js) page ----------------
 @app.route("/api/checkpoints/merged", methods=["GET"])
 def get_merged_checkpoints():
     locations = location_collection.find()
@@ -321,123 +110,7 @@ def get_merged_checkpoints():
     return jsonify(merged_data)
 
 
-# ---------------- Data Insert & Search ----------------
-@app.route("/api/data", methods=["POST"])
-def add_checkpoints():
-    data = request.get_json()
-    if not isinstance(data, list):
-        return jsonify({"error": "Expected an array of objects"}), 400
-    for item in data:
-        required_keys = [
-            "message_id",
-            "source_channel",
-            "original_message",
-            "checkpoint_name",
-            "city_name",
-            "status",
-            "direction",
-            "message_date",
-        ]
-        if not all(key in item for key in required_keys):
-            return jsonify({"error": "Missing required fields"}), 400
-    result = data_collection.insert_many(data)
-    return (
-        jsonify(
-            {
-                "message": "✅ Data inserted successfully",
-                "insertedCount": len(result.inserted_ids),
-            }
-        ),
-        201,
-    )
-
-
-# GET all data
-@app.route("/api/data/show", methods=["GET"])
-def get_all_data():
-    results = data_collection.find().sort("message_date", -1)
-    return jsonify([prepare_doc(doc) for doc in results])
-
-
-# GET by city
-@app.route("/api/data/city/<city>", methods=["GET"])
-def get_by_city(city):
-    results = data_collection.find({"city_name": {"$regex": city, "$options": "i"}}).sort("message_date", -1)
-    return jsonify([prepare_doc(doc) for doc in results])
-
-
-# GET by checkpoint
-@app.route("/api/data/checkpoint/<checkpoint>", methods=["GET"])
-def get_by_checkpoint_data(checkpoint):
-    results = data_collection.find({"checkpoint_name": {"$regex": checkpoint, "$options": "i"}}).sort(
-        "message_date", -1
-    )
-    return jsonify([prepare_doc(doc) for doc in results])
-
-
-# GET by status
-@app.route("/api/data/status/<status>", methods=["GET"])
-def get_by_status_data(status):
-    results = data_collection.find({"status": {"$regex": status, "$options": "i"}}).sort("message_date", -1)
-    return jsonify([prepare_doc(doc) for doc in results])
-
-
-# GET with search params (city + status)
-@app.route("/api/data/search", methods=["GET"])
-def search_data():
-    city = request.args.get("city")
-    status = request.args.get("status")
-    query = {}
-    if city:
-        query["city_name"] = {"$regex": city, "$options": "i"}
-    if status:
-        query["status"] = {"$regex": status, "$options": "i"}
-    results = data_collection.find(query).sort("message_date", -1)
-    return jsonify([prepare_doc(doc) for doc in results])
-
-
-# ---------------- Location Insert & Nearby ----------------
-
-
-# GET all locations
-@app.route("/api/locations", methods=["GET"])
-def get_locations():
-    try:
-        locations = list(location_collection.find({}, {"_id": 0}))
-        return jsonify(
-            {
-                "success": True,
-                "count": len(locations),
-                "locations": locations,
-                "team_info": "🗺️ Position Team: Use this endpoint to get all checkpoint locations",
-            }
-        )
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
-# POST to add new locations
-@app.route("/api/locations/add", methods=["POST"])
-def add_locations():
-    data = request.get_json()
-    if not isinstance(data, list):
-        return jsonify({"error": "Expected an array of objects"}), 400
-    required_keys = ["city", "checkpoint", "lat", "lng"]
-    for item in data:
-        if not all(key in item for key in required_keys):
-            return jsonify({"error": "Missing required fields"}), 400
-    result = location_collection.insert_many(data)
-    return (
-        jsonify(
-            {
-                "message": "✅ Location data inserted successfully",
-                "insertedCount": len(result.inserted_ids),
-            }
-        ),
-        201,
-    )
-
-
+# ---------------- User on the frontend (PushNotificationSetup.js) page ----------------
 @app.route("/api/near_location", methods=["GET"])
 def get_nearby_checkpoints():
     try:
@@ -487,6 +160,7 @@ def get_nearby_checkpoints():
         return jsonify({"error": str(e)}), 500
 
 
+# ---------------- User on the frontend (FeedbackNotification .js) page ----------------
 @app.route("/api/closest-checkpoint", methods=["GET"])
 def get_closest_checkpoint():
     try:
