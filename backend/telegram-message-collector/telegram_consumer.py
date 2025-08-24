@@ -10,7 +10,6 @@ import asyncio
 import json
 import logging
 import os
-import signal
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -100,19 +99,6 @@ class EnhancedTelegramMonitor:
         self.initialized = False
         self.cycle_count = 0
         self.last_error = None
-
-        # Setup signal handlers
-        self.setup_signal_handlers()
-
-    def setup_signal_handlers(self):
-        """Setup signal handlers for graceful shutdown"""
-
-        def signal_handler(signum, frame):
-            logger.info(f"📡 Received signal {signum}")
-            self.stop_monitoring()
-
-        signal.signal(signal.SIGINT, signal_handler)
-        signal.signal(signal.SIGTERM, signal_handler)
 
     def stop_monitoring(self):
         """Stop the monitoring process"""
