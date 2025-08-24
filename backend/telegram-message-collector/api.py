@@ -5,7 +5,7 @@ Includes search, filtering, geo-based queries, and MongoDB Atlas connection
 """
 
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
@@ -25,14 +25,12 @@ CORS(app)
 app.config["MONGO_URI"] = MONGO_CONNECTION_STRING
 mongo = PyMongo(app)
 
-
 # Reading variables from the environment
 COLLECTION_DATA = os.getenv("MONGO_COLLECTION_DATA")
 COLLECTION_LOCATIONS = os.getenv("MONGO_COLLECTION_LOCATIONS")
 HOST = os.getenv("FLASK_HOST")
 PORT = int(os.getenv("FLASK_PORT"))
 DEBUG = os.getenv("FLASK_DEBUG").lower() == "true"
-
 
 # Collections
 data_collection = mongo.db[COLLECTION_DATA]
@@ -43,7 +41,7 @@ RADIUS_KM = float(os.getenv("RADIUS_IN_KM"))
 # Verify that the values exist
 if not COLLECTION_DATA or not COLLECTION_LOCATIONS or not HOST or not PORT:
     raise ValueError(
-        "❌ COLLECTION_DATA or COLLECTION_LOCATIONS or RADIUS_IN_KM or HOST or PORT is missing in .env file"
+        "❌ COLLECTION_DATA or COLLECTION_LOCATIONS or RADIUS_IN_KM or HOST or PORT " "is missing in .env file"
     )
 
 
@@ -136,7 +134,8 @@ def get_nearby_checkpoints():
                 continue
 
             status_doc = data_collection.find_one(
-                {"checkpoint_name": cp.get("checkpoint"), "city_name": cp.get("city")}, sort=[("message_date", -1)]
+                {"checkpoint_name": cp.get("checkpoint"), "city_name": cp.get("city")},
+                sort=[("message_date", -1)],
             )
 
             merged = {
@@ -200,7 +199,7 @@ def get_closest_checkpoint():
             "latitude": closest_cp.get("lat"),
             "longitude": closest_cp.get("lng"),
             "distance_km": round(min_dist, 2),
-            "team_info": "🗺️ Position Team: Closest checkpoint to specified coordinates",
+            "team_info": ("🗺️ Position Team: Closest checkpoint to specified coordinates"),
         }
 
         if status_doc:
@@ -208,6 +207,71 @@ def get_closest_checkpoint():
             result["last_update"] = status_doc.get("message_date")
 
         return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/checkpoints/query", methods=["GET"])
+def search_road_conditions():
+    """
+    API to query road conditions with multiple optional filters.
+    Filters are applied in the order: ago -> others -> top.
+    """
+    try:
+        checkpoint_name = request.args.get("checkpoint", "")
+        city_name = request.args.get("city", "")
+        status = request.args.get("status", "")
+        direction = request.args.get("direction", "")
+        ago_filter = request.args.get("ago", "")
+        top_filter = request.args.get("top", "")
+
+        # Build the MongoDB query filter
+        mongo_filter = {}
+
+        # ago filter first if it exists
+        if ago_filter:
+            try:
+                ago_value = int(ago_filter)
+                if ago_value < 0:
+                    return jsonify({"error": "Ago value must be a positive integer."}), 400
+
+                cutoff_time = datetime.utcnow() - timedelta(minutes=ago_value)
+
+                mongo_filter["message_date"] = {"$gte": cutoff_time}
+            except ValueError:
+                return jsonify({"error": "Invalid value for 'ago'. Please use a positive integer."}), 400
+
+        #  Apply all other filters
+        if checkpoint_name:
+            mongo_filter["checkpoint_name"] = {"$regex": checkpoint_name.strip('"'), "$options": "i"}
+        if city_name:
+            mongo_filter["city_name"] = {"$regex": city_name.strip('"'), "$options": "i"}
+        if status:
+            mongo_filter["status"] = {"$regex": status.strip('"'), "$options": "i"}
+        if direction:
+            mongo_filter["direction"] = {"$regex": direction.strip('"'), "$options": "i"}
+
+        sort_order = [("message_date", -1)]
+
+        #  Apply the 'top' filter as a limit after all other filters are applied
+        limit = 0
+        if top_filter:
+            try:
+                limit = int(top_filter)
+                if limit < 1:
+                    return jsonify({"error": "Top value must be a positive integer greater than 0."}), 400
+            except ValueError:
+                return jsonify({"error": "Invalid value for 'top'. Please use a positive integer."}), 400
+
+        messages = list(data_collection.find(mongo_filter).sort(sort_order).limit(limit))
+
+        for msg in messages:
+            msg["_id"] = str(msg["_id"])
+            if isinstance(msg.get("message_date"), datetime):
+                msg["message_date"] = msg["message_date"].isoformat()
+
+        return jsonify({"results": messages, "count": len(messages)})
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

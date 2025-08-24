@@ -35,9 +35,14 @@ file_handler = logging.FileHandler(log_dir / "continuous_monitor.log", encoding=
 console_handler = logging.StreamHandler()
 
 # Create formatters
-file_formatter = logging.Formatter("%(asctime)s | %(levelname)8s | %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
-console_formatter = logging.Formatter("%(asctime)s | %(levelname)8s | %(message)s", datefmt="%H:%M:%S")
-
+file_formatter = logging.Formatter(
+    "%(asctime)s | %(levelname)8s | %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
+console_formatter = logging.Formatter(
+    "%(asctime)s | %(levelname)8s | %(message)s",
+    datefmt="%H:%M:%S"
+)
 # Add formatters to handlers
 file_handler.setFormatter(file_formatter)
 console_handler.setFormatter(console_formatter)
@@ -328,8 +333,9 @@ class EnhancedTelegramMonitor:
         logger.info(f"📨 Total messages collected: {self.stats['total_messages']:,}")
         logger.info(f"❌ Errors encountered: {self.stats['errors']}")
         logger.info(f"📡 Monitoring {len(self.channels)} channels")
-        logger.info(f"⏰ Check interval: {self.CHECK_INTERVAL // 60} minutes")
-
+        logger.info(
+            f"⏰ Check interval: {self.CHECK_INTERVAL} seconds ({self.CHECK_INTERVAL//60} minutes)"
+        )
         if self.stats.get("last_run"):
             last_run = datetime.fromisoformat(self.stats["last_run"])
             logger.info(f"🕐 Last check: {last_run.strftime('%H:%M:%S')}")
@@ -351,7 +357,9 @@ class EnhancedTelegramMonitor:
                 "mongodb_status": self.check_mongodb_health(),
             }
 
-            logger.info(f"🏥 Health Check: {health}")
+            logger.info(
+                f"🏥 Health Check: {health}"
+            )
             return health
 
         except Exception as e:
@@ -367,7 +375,9 @@ class EnhancedTelegramMonitor:
             memory_mb = process.memory_info().rss / 1024 / 1024
             return f"{memory_mb:.1f} MB"
         except Exception as e:
-            logger.error(f"❌ Error getting memory usage: {e}")
+            logger.error(
+                f"❌ Error getting memory usage: {e}"
+            )
             return "Unknown"
 
     async def check_telegram_health(self):
@@ -399,7 +409,9 @@ class EnhancedTelegramMonitor:
         logger.info(f"📅 Start time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         logger.info(f"⏰ Check interval: {self.CHECK_INTERVAL} seconds ({self.CHECK_INTERVAL//60} minutes)")
         logger.info(f"📡 Channels: {len(self.channels)}")
-        logger.info(f"📝 Message limit per channel: {self.MESSAGE_LIMIT}")
+        logger.info(
+            f"📝 Message limit per channel: {self.MESSAGE_LIMIT}"
+        )
         logger.info("=" * 60)
 
         # Initialize services
@@ -435,8 +447,9 @@ class EnhancedTelegramMonitor:
 
                 # Calculate next run time
                 next_run = datetime.now() + timedelta(seconds=self.CHECK_INTERVAL)
-                logger.info(f"😴 Sleeping until {next_run.strftime('%H:%M:%S')} ({self.CHECK_INTERVAL//60} minutes)...")
-
+                logger.info(
+                    f"😴 Sleeping until {next_run.strftime('%H:%M:%S')} ({self.CHECK_INTERVAL//60} minutes)..."
+                )
                 # Sleep with periodic status updates
                 for i in range(self.CHECK_INTERVAL):
                     if not self.running:
@@ -448,7 +461,9 @@ class EnhancedTelegramMonitor:
                     # Status update every 60 seconds
                     remaining = self.CHECK_INTERVAL - i - 1
                     if remaining > 0 and remaining % 60 == 0 and remaining >= 60:
-                        logger.info(f"⏳ {remaining//60} minutes remaining until next check...")
+                        logger.info(
+                            f"⏳ {remaining//60} minutes remaining until next check..."
+                        )
 
         except KeyboardInterrupt:
             logger.info("🛑 Keyboard interrupt received")
@@ -474,7 +489,9 @@ class EnhancedTelegramMonitor:
                 await self.collector.client.disconnect()
                 logger.info("📱 Telegram client disconnected")
             except Exception as e:
-                logger.error(f"❌ Error disconnecting Telegram client: {e}")
+                logger.error(
+                    f"❌ Error disconnecting Telegram client: {e}"
+                )
                 pass
 
         # Close MongoDB connection
@@ -483,7 +500,9 @@ class EnhancedTelegramMonitor:
                 self.mongo_handler.disconnect()
                 logger.info("🗄️ MongoDB connection closed")
             except Exception as e:
-                logger.error(f"❌ Error closing MongoDB connection: {e}")
+                logger.error(
+                    f"❌ Error closing MongoDB connection: {e}"
+                )
                 pass
 
         logger.info("✅ Cleanup completed")
