@@ -52,5 +52,6 @@ SESSION_FILE_PATH = get_session_file(SECRET_NAMES)
 APP_HASH = secret_client.get_secret("appHash").value
 MONGO_CONNECTION_STRING = secret_client.get_secret("mongodbConnectionString").value
 PHONE_NUMBER = secret_client.get_secret("PhoneNumber").value
+OPEN_AI_CLIENT = secret_client.get_secret("OpenAI").value
 
-print("✅ Secrets fetched: APP_HASH, PHONE_NUMBER, MONGO_CONNECTION_STRING")
+print("✅ Secrets fetched: APP_HASH, PHONE_NUMBER, MONGO_CONNECTION_STRING, OPEN_AI_CLIENT")
