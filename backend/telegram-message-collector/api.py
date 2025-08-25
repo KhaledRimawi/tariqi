@@ -13,6 +13,7 @@ from flask_cors import CORS
 from flask_pymongo import PyMongo
 
 from appsecrets import MONGO_CONNECTION_STRING
+from client import get_gpt_response
 from geo_utils import haversine
 
 # Loads values from .env file
@@ -79,9 +80,33 @@ def home():
                     "/api/closest-checkpoint",
                     "/api/checkpoints/merged",
                 ],
+                "ai_chat": ["/api/ask-ai"],
             },
         }
     )
+
+
+# ---------------- AI Chat Endpoint ----------------
+@app.route("/api/ask-ai", methods=["POST"])
+def ask_ai():
+    """
+    Endpoint to send a user prompt to Azure OpenAI and return the GPT response.
+    Request format:
+        { "prompt": "Your question here" }
+    """
+    try:
+        data = request.get_json()
+        user_prompt = data.get("prompt")
+
+        if not user_prompt:
+            return jsonify({"error": "No prompt provided"}), 400
+
+        # Call the function from client.py
+        answer = get_gpt_response(user_prompt)
+
+        return jsonify({"success": True, "prompt": user_prompt, "response": answer})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 # ---------------- User on the frontend (Map.js) page ----------------

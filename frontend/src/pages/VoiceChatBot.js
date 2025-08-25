@@ -71,33 +71,44 @@ const VoiceChatbot = () => {
     }
   };
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (inputText.trim()) {
       const newMessage = {
         id: messages.length + 1,
         text: inputText,
         sender: 'user'
       };
-
       setMessages(prev => [...prev, newMessage]);
-      
-      // Simulate bot response
-      setTimeout(() => {
+
+      try {
+      const backendUrl = process.env.REACT_APP_BACKEND_URL;
+
+      const res = await fetch(`${backendUrl}/api/ask-ai`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: inputText })
+      });
+
+        const data = await res.json();
+
         const botResponse = {
           id: messages.length + 2,
-          text: `I heard you say: "${inputText}". This is a demo response. In a real chatbot, this would be processed by our AI backend.`,
+          text: data.response || "⚠️ Error: No response from AI",
           sender: 'bot'
         };
+
         setMessages(prev => [...prev, botResponse]);
-        
-        // Optional: Speak the bot's response
+
+        // Optional: read response with speech synthesis.
         if ('speechSynthesis' in window) {
           const utterance = new SpeechSynthesisUtterance(botResponse.text);
           utterance.rate = 0.8;
           utterance.pitch = 1;
           speechSynthesis.speak(utterance);
         }
-      }, 1000);
+      } catch (err) {
+        console.error("Error communicating with AI:", err);
+      }
 
       setInputText('');
     }

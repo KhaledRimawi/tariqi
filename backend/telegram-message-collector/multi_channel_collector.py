@@ -394,9 +394,7 @@ class MultiChannelTelegramCollector:
 
         if all_messages:
             # Sort chronologically (newest first)
-            sorted_messages = sorted(
-                all_messages, key=lambda x: x["message_date"], reverse=True
-            )
+            sorted_messages = sorted(all_messages, key=lambda x: x["message_date"], reverse=True)
 
             print("\n🎯 Collection Summary:")
             print(f"   📊 Total messages: {len(sorted_messages)}")
@@ -415,9 +413,7 @@ class MultiChannelTelegramCollector:
             print("\n📈 Messages per source:")
             for source, count in source_count.items():
                 percentage = (count / len(sorted_messages)) * 100
-                print(
-                    f"   📡 {source}: {count} ({percentage:.1f}%)"
-                )
+                print(f"   📡 {source}: {count} ({percentage:.1f}%)")
 
             return sorted_messages
         else:
@@ -535,13 +531,9 @@ class MultiChannelTelegramCollector:
                 print(f"🏙️ City: {msg['city_name']}")
                 print(f"🎯 Status: {msg['status']}")
                 print(f"↔️ Direction: {msg['direction']}")
-                print(
-                    f"💬 Message: {msg['original_message'][:100]}..."
-                )
+                print(f"💬 Message: {msg['original_message'][:100]}...")
             else:
-                print(
-                    f"💬 Text: {msg['message_text'][:100]}..."
-                )
+                print(f"💬 Text: {msg['message_text'][:100]}...")
 
             print("-" * 40)
 
@@ -569,9 +561,7 @@ async def main():
 
     session_file_path = get_session_file(SECRET_NAMES)
     if not os.path.exists(session_file_path) or os.path.getsize(session_file_path) == 0:
-        raise RuntimeError(
-            f"❌ Session file missing or empty: {session_file_path}"
-        )
+        raise RuntimeError(f"❌ Session file missing or empty: {session_file_path}")
 
     collector = MultiChannelTelegramCollector(API_ID, API_HASH, PHONE_NUMBER)
 

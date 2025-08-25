@@ -6,7 +6,7 @@ import About from './pages/About';
 import MapPage from './pages/MapPage';
 import DestinationSearch from './pages/DestinationSearch';
 import FeedbackPage from './pages/FeedbackPage'; // ✅ Import FeedbackPage
-import VoiceChatBot from './pages/VoiceChatBot '; 
+import VoiceChatBot from './pages/VoiceChatBot'; 
 
 
 const App = () => {
