@@ -19,7 +19,6 @@ secret_client = SecretClient(vault_url=KEY_VAULT_URL, credential=credential)
 SECRET_NAMES = [
     "telegramSessionPart1",
     "telegramSessionPart2",
-    "telegramSessionPart3",
 ]
 
 
