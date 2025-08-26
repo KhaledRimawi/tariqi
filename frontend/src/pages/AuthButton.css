@@ -1,0 +1,21 @@
+.auth-button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #0078d4, #005a9e);
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.auth-button:hover {
+  background: linear-gradient(135deg, #005a9e, #004578);
+  transform: translateY(-2px);
+}
+
+.auth-button:active {
+  transform: translateY(1px);
+}

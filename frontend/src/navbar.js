@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import logo from './assets/LogoFinal.png';
 import './Navbar.css';
+import AuthButton from './pages/AuthButton';
 
 const Navbar = () => {
   return (
@@ -41,6 +42,7 @@ const Navbar = () => {
           </NavLink>
         </li>
       </ul>
+      <AuthButton /> 
     </nav>
   );
 };
