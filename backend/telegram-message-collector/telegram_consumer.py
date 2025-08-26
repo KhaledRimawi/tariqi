@@ -19,6 +19,7 @@ from dotenv import load_dotenv
 
 from appsecrets import APP_HASH, PHONE_NUMBER
 from mongodb_handler import MongoDBHandler
+
 # Import our custom modules
 from multi_channel_collector import MultiChannelTelegramCollector
 

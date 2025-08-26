@@ -17,8 +17,8 @@ from telethon import TelegramClient
 from telethon.errors import SessionPasswordNeededError
 from telethon.tl.types import Channel, Chat
 
-from appsecrets import (APP_HASH, PHONE_NUMBER, SECRET_NAMES,
-                        SESSION_FILE_PATH, get_session_file)
+from appsecrets import APP_HASH, PHONE_NUMBER, SECRET_NAMES, SESSION_FILE_PATH, get_session_file
+
 # Import MongoDB handler
 from mongodb_handler import MongoDBHandler
 

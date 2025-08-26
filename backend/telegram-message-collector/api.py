@@ -5,7 +5,7 @@ Includes search, filtering, geo-based queries, and MongoDB Atlas connection
 """
 
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
@@ -15,6 +15,7 @@ from flask_pymongo import PyMongo
 from appsecrets import MONGO_CONNECTION_STRING
 from client import get_gpt_response
 from geo_utils import haversine
+import random
 
 # Loads values from .env file
 load_dotenv()
@@ -42,7 +43,8 @@ RADIUS_KM = float(os.getenv("RADIUS_IN_KM"))
 # Verify that the values exist
 if not COLLECTION_DATA or not COLLECTION_LOCATIONS or not HOST or not PORT:
     raise ValueError(
-        "❌ COLLECTION_DATA or COLLECTION_LOCATIONS or RADIUS_IN_KM or HOST or PORT " "is missing in .env file"
+        "❌ COLLECTION_DATA or COLLECTION_LOCATIONS or RADIUS_IN_KM or HOST or "
+        "PORT is missing in .env file"
     )
 
 
@@ -55,7 +57,9 @@ def prepare_doc(doc):
     city = doc.get("city_name")
     checkpoint = doc.get("checkpoint_name")
     if city and checkpoint:
-        location = location_collection.find_one({"city": city, "checkpoint": checkpoint})
+        location = location_collection.find_one(
+            {"city": city, "checkpoint": checkpoint}
+        )
         if location:
             doc["lat"] = location.get("lat")
             doc["lng"] = location.get("lng")
@@ -105,7 +109,11 @@ def ask_ai():
         # Call the function from client.py
         answer = get_gpt_response(user_prompt)
 
-        return jsonify({"success": True, "prompt": user_prompt, "response": answer})
+        return jsonify({
+            "success": True,
+            "prompt": user_prompt,
+            "response": answer
+        })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -126,9 +134,15 @@ def get_merged_checkpoints():
             "city": loc.get("city"),
             "lat": loc.get("lat"),
             "lng": loc.get("lng"),
-            "status": latest_status.get("status") if latest_status else "N/A",
-            "direction": (latest_status.get("direction") if latest_status else "N/A"),
-            "message_date": (latest_status.get("message_date") if latest_status else "N/A"),
+            "status": (
+                latest_status.get("status") if latest_status else "N/A"
+            ),
+            "direction": (
+                latest_status.get("direction") if latest_status else "N/A"
+            ),
+            "message_date": (
+                latest_status.get("message_date") if latest_status else "N/A"
+            ),
         }
         merged_data.append(merged_checkpoint)
     return jsonify(merged_data)
@@ -146,7 +160,10 @@ def get_nearby_checkpoints():
 
         radius_km = RADIUS_KM  # read from .env
 
-        checkpoints = list(location_collection.find({"lat": {"$exists": True}, "lng": {"$exists": True}}))
+        checkpoints = list(location_collection.find({
+            "lat": {"$exists": True},
+            "lng": {"$exists": True}
+        }))
 
         nearby = []
         for cp in checkpoints:
@@ -160,7 +177,10 @@ def get_nearby_checkpoints():
                 continue
 
             status_doc = data_collection.find_one(
-                {"checkpoint_name": cp.get("checkpoint"), "city_name": cp.get("city")},
+                {
+                    "checkpoint_name": cp.get("checkpoint"),
+                    "city_name": cp.get("city")
+                },
                 sort=[("message_date", -1)],
             )
 
@@ -179,7 +199,11 @@ def get_nearby_checkpoints():
 
             nearby.append(merged)
 
-        return jsonify({"success": True, "count": len(nearby), "checkpoints": nearby})
+        return jsonify({
+            "success": True,
+            "count": len(nearby),
+            "checkpoints": nearby
+        })
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -194,7 +218,10 @@ def get_closest_checkpoint():
         if lat is None or lng is None:
             return jsonify({"error": "Missing lat or lng parameters"}), 400
 
-        checkpoints = list(location_collection.find({"lat": {"$exists": True}, "lng": {"$exists": True}}))
+        checkpoints = list(location_collection.find({
+            "lat": {"$exists": True},
+            "lng": {"$exists": True}
+        }))
         min_dist = None
         closest_cp = None
 
@@ -225,7 +252,9 @@ def get_closest_checkpoint():
             "latitude": closest_cp.get("lat"),
             "longitude": closest_cp.get("lng"),
             "distance_km": round(min_dist, 2),
-            "team_info": ("🗺️ Position Team: Closest checkpoint to specified coordinates"),
+            "team_info": (
+                "🗺️ Position Team: Closest checkpoint to specified coordinates"
+            ),
         }
 
         if status_doc:
@@ -260,23 +289,41 @@ def search_road_conditions():
             try:
                 ago_value = int(ago_filter)
                 if ago_value < 0:
-                    return jsonify({"error": "Ago value must be a positive integer."}), 400
+                    return jsonify({
+                        "error": "Ago value must be a positive integer."
+                    }), 400
 
                 cutoff_time = datetime.utcnow() - timedelta(minutes=ago_value)
 
                 mongo_filter["message_date"] = {"$gte": cutoff_time}
             except ValueError:
-                return jsonify({"error": "Invalid value for 'ago'. Please use a positive integer."}), 400
+                return jsonify({
+                    "error": (
+                        "Invalid value for 'ago'. Please use a positive integer."
+                    )
+                }), 400
 
         #  Apply all other filters
         if checkpoint_name:
-            mongo_filter["checkpoint_name"] = {"$regex": checkpoint_name.strip('"'), "$options": "i"}
+            mongo_filter["checkpoint_name"] = {
+                "$regex": checkpoint_name.strip('"'),
+                "$options": "i"
+            }
         if city_name:
-            mongo_filter["city_name"] = {"$regex": city_name.strip('"'), "$options": "i"}
+            mongo_filter["city_name"] = {
+                "$regex": city_name.strip('"'),
+                "$options": "i"
+            }
         if status:
-            mongo_filter["status"] = {"$regex": status.strip('"'), "$options": "i"}
+            mongo_filter["status"] = {
+                "$regex": status.strip('"'),
+                "$options": "i"
+            }
         if direction:
-            mongo_filter["direction"] = {"$regex": direction.strip('"'), "$options": "i"}
+            mongo_filter["direction"] = {
+                "$regex": direction.strip('"'),
+                "$options": "i"
+            }
 
         sort_order = [("message_date", -1)]
 
@@ -286,20 +333,124 @@ def search_road_conditions():
             try:
                 limit = int(top_filter)
                 if limit < 1:
-                    return jsonify({"error": "Top value must be a positive integer greater than 0."}), 400
+                    return jsonify({
+                        "error": (
+                            "Top value must be a positive integer greater than 0."
+                        )
+                    }), 400
             except ValueError:
-                return jsonify({"error": "Invalid value for 'top'. Please use a positive integer."}), 400
+                return jsonify({
+                    "error": (
+                        "Invalid value for 'top'. Please use a positive integer."
+                    )
+                }), 400
 
-        messages = list(data_collection.find(mongo_filter).sort(sort_order).limit(limit))
+        messages = list(
+            data_collection.find(mongo_filter).sort(sort_order).limit(limit)
+        )
 
         for msg in messages:
             msg["_id"] = str(msg["_id"])
             if isinstance(msg.get("message_date"), datetime):
                 msg["message_date"] = msg["message_date"].isoformat()
 
-        return jsonify({"results": messages, "count": len(messages)})
+        return jsonify({
+            "results": messages,
+            "count": len(messages)
+        })
 
     except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    # ---------------- User Feedback ----------------
+
+
+@app.route("/api/feedback", methods=["POST"])
+def submit_feedback():
+    try:
+        data = request.get_json()
+
+        print("Received feedback:", data, flush=True)
+        print(
+            "Latitude:", data.get("latitude"),
+            "Longitude:", data.get("longitude"),
+            flush=True
+        )
+
+        if (
+            not data or "message" not in data or
+            "latitude" not in data or "longitude" not in data
+        ):
+            return jsonify({
+                "error": (
+                    "Missing 'message', 'latitude' or 'longitude' field"
+                )
+            }), 400
+
+        user_lat = data["latitude"]
+        user_lng = data["longitude"]
+        message = data["message"]
+        status = data["status"]
+        direction = data["direction"]
+
+        # ---------------- Find closest checkpoint ----------------
+        checkpoints = list(location_collection.find({
+            "lat": {"$exists": True},
+            "lng": {"$exists": True}
+        }))
+        closest_cp, min_dist = None, None
+
+        for cp in checkpoints:
+            cp_lat = cp.get("lat")
+            cp_lng = cp.get("lng")
+            dist = haversine(user_lat, user_lng, cp_lat, cp_lng)
+            if min_dist is None or dist < min_dist:
+                min_dist = dist
+                closest_cp = cp
+
+        print("Closest checkpoint found:", closest_cp, flush=True)
+
+        if not closest_cp:
+            return jsonify({"error": "No checkpoint found"}), 404
+
+        # ---------------- Build feedback document ----------------
+        feedback_doc = {
+            "message_id": random.randint(1_000_000, 9_999_999),
+            "source_channel": "user_feedback",
+            "original_message": message,
+            "checkpoint_name": closest_cp.get("checkpoint"),
+            "city_name": closest_cp.get("city"),
+            "status": status,
+            "direction": direction,
+            "message_date": datetime.now(timezone.utc),
+        }
+
+        print("Feedback document to insert:", feedback_doc, flush=True)
+
+        inserted_id = data_collection.insert_one(feedback_doc).inserted_id
+        print(
+            "✅ Inserted Feedback into collection:",
+            data_collection.name,
+            "with _id:", inserted_id,
+            flush=True
+        )
+
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "id": str(inserted_id),
+                    "checkpoint": closest_cp.get("checkpoint"),
+                    "city": closest_cp.get("city"),
+                    "status": status,
+                    "direction": direction,
+                }
+            ),
+            201,
+        )
+
+    except Exception as e:
+        print("❌ Error inserting feedback:", str(e), flush=True)
         return jsonify({"error": str(e)}), 500
 
 

@@ -11,23 +11,59 @@ const FeedbackPage = () => {
     { text: 'خارج ومغلق', color: '#ffcdd2', textColor: '#c62828' }  // Red
   ];
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+const handleSubmit = (e) => {
+  e.preventDefault();
 
-    fetch('http://localhost:5000/api/feedback', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: selectedOption }),
-    })
-      .then((res) => res.json())
-      .then(() => {
-        alert('✅ تم إرسال الملاحظة بنجاح!');
-        setSelectedOption('');
-      })
-      .catch((err) => {
-        console.error('Error submitting feedback:', err);
-      });
+  if (!selectedOption) return;
+
+  if (!navigator.geolocation) {
+    alert("❌ Geolocation is not supported by your browser");
+    return;
+  }
+
+  // Map the selected option to status and direction
+  const optionMap = {
+    "داخل ومفتوح": { status: "مفتوح", direction: "داخل" },
+    "داخل ومغلق": { status: "مغلق", direction: "داخل" },
+    "خارج ومفتوح": { status: "مفتوح", direction: "خارج" },
+    "خارج ومغلق": { status: "مغلق", direction: "خارج" },
   };
+
+  const { status, direction } = optionMap[selectedOption];
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const payload = {
+        message: selectedOption,
+        status,
+        direction,
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      };
+
+      fetch("http://localhost:5000/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          console.log("Inserted feedback:", data);
+          alert("✅ تم إرسال الملاحظة بنجاح!");
+          setSelectedOption("");
+        })
+        .catch((err) => {
+          console.error("Error submitting feedback:", err);
+          alert("❌ حدث خطأ أثناء إرسال الملاحظة");
+        });
+    },
+    (err) => {
+      console.error("Geolocation error:", err);
+      alert("❌ لم نتمكن من الحصول على موقعك الحالي");
+    }
+  );
+};
+
 
   return (
     <div className="feedback-page-container">
