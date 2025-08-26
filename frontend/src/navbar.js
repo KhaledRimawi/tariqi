@@ -1,48 +1,62 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import logo from './assets/LogoFinal.png';
 import './Navbar.css';
 import AuthButton from './pages/AuthButton';
 
 const Navbar = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const toggleMenu = () => setIsOpen(!isOpen);
+
   return (
     <nav className="navbar">
       <div className="navbar-logo">
         <img src={logo} alt="Logo" className="logo" />
       </div>
-      <ul className="nav-links">
+
+      <div className={`nav-links ${isOpen ? 'open' : ''}`}>
         <li>
-          <NavLink to="/" className={({ isActive }) => isActive ? "active-link" : ""}>
+          <NavLink to="/" onClick={() => setIsOpen(false)} className={({ isActive }) => isActive ? "active-link" : ""}>
             Home
           </NavLink>
         </li>
         <li>
-          <NavLink to="/about" className={({ isActive }) => isActive ? "active-link" : ""}>
+          <NavLink to="/about" onClick={() => setIsOpen(false)} className={({ isActive }) => isActive ? "active-link" : ""}>
             About
           </NavLink>
         </li>
         <li>
-          <NavLink to="/map" className={({ isActive }) => isActive ? "active-link" : ""}>
+          <NavLink to="/map" onClick={() => setIsOpen(false)} className={({ isActive }) => isActive ? "active-link" : ""}>
             Map
           </NavLink>
         </li>
         <li>
-          <NavLink to="/destination-search" className={({ isActive }) => isActive ? "active-link" : ""}>
+          <NavLink to="/destination-search" onClick={() => setIsOpen(false)} className={({ isActive }) => isActive ? "active-link" : ""}>
             Destination Search
           </NavLink>
         </li>
         <li>
-          <NavLink to="/feedback" className={({ isActive }) => isActive ? "active-link" : ""}>
+          <NavLink to="/feedback" onClick={() => setIsOpen(false)} className={({ isActive }) => isActive ? "active-link" : ""}>
             Feedback
           </NavLink>
         </li>
         <li>
-          <NavLink to="/voice-chat-bot" className={({ isActive }) => isActive ? "active-link" : ""}>
+          <NavLink to="/voice-chat-bot" onClick={() => setIsOpen(false)} className={({ isActive }) => isActive ? "active-link" : ""}>
             Chat Bot
           </NavLink>
         </li>
-      </ul>
-      <AuthButton /> 
+
+        <li className="auth-mobile">
+          <AuthButton />
+        </li>
+      </div>
+
+      <div className="hamburger" onClick={toggleMenu}>
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
     </nav>
   );
 };
