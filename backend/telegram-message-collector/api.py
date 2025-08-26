@@ -79,6 +79,7 @@ def home():
                     "/api/near_location",
                     "/api/closest-checkpoint",
                     "/api/checkpoints/merged",
+                    "/api/checkpoints/query",
                 ],
                 "ai_chat": ["/api/ask-ai"],
             },
@@ -236,6 +237,7 @@ def get_closest_checkpoint():
         return jsonify({"error": str(e)}), 500
 
 
+# ---------------- User on the frontend (Map.js) & (Dwstination Search) pages ----------------
 @app.route("/api/checkpoints/query", methods=["GET"])
 def search_road_conditions():
     """
