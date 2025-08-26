@@ -16,7 +16,7 @@ steps:
 
 - script: |
     cd frontend
-    npm install --legacy-peer-deps
+    npm install
     npm run build
   displayName: 'npm install and build'
 
@@ -27,13 +27,13 @@ steps:
   displayName: 'Use Python 3.11'
 
 - script: |
-    cd backend/telegram-message-collector
+    cd backend
     python -m pip install --upgrade pip
     pip install -r requirements.txt
     pip install flake8
   displayName: 'Install dependencies and flake8'
 
 - script: |
-    cd backend/telegram-message-collector
+    cd backend
     python build.py
   displayName: 'Run Python build script'

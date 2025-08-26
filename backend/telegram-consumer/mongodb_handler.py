@@ -4,14 +4,20 @@ MongoDB Database Handler for Telegram Message Collector
 
 import logging
 import os
+import sys
 from datetime import datetime, timezone
 from typing import Any, Dict
 
 from dotenv import load_dotenv
+from keyvault_client import get_secret
 from pymongo import MongoClient
 
-from appsecrets import MONGO_CONNECTION_STRING
+# Define the key for the MongoDB connection string (from environment or hardcoded)
+MONGO_CONNECTION_STRING_KEY = os.getenv("MONGO_CONNECTION_STRING_KEY") or "mongodbConnectionString"
 
+
+# resolve path to ../common relative to *this file*
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "common")))
 # Load variables from .env file
 load_dotenv()
 
@@ -55,7 +61,7 @@ class MongoDBHandler:
 
     def __init__(self):
         """Initialize MongoDB connection"""
-        self.connection_string = MONGO_CONNECTION_STRING
+        self.connection_string = get_secret()
         self.client = None
         self.db = None
         self.collection = None

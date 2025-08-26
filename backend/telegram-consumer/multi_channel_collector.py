@@ -1,10 +1,10 @@
-#!/usr/bin/env python3
-"""
-Multi-Channel Telegram Message Collector
+import base64
+import os
+import sys
 
-This script collects messages from multiple Telegram channels/groups simultaneously,
-merges them chronologically, and saves them to MongoDB.
-"""
+# resolve path to ../common relative to *this file*
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "common")))
+
 import asyncio
 import csv
 import os
@@ -13,17 +13,14 @@ from datetime import datetime
 from typing import Any, Dict, List, Tuple
 
 from dotenv import load_dotenv
+
+load_dotenv()
+from keyvault_client import get_secret
+# Import MongoDB handler
+from mongodb_handler import MongoDBHandler
 from telethon import TelegramClient
 from telethon.errors import SessionPasswordNeededError
 from telethon.tl.types import Channel, Chat
-
-from appsecrets import APP_HASH, PHONE_NUMBER, SECRET_NAMES, SESSION_FILE_PATH, get_session_file
-
-# Import MongoDB handler
-from mongodb_handler import MongoDBHandler
-
-# Loads values from .env file
-load_dotenv()
 
 
 class MultiChannelTelegramCollector:
@@ -45,7 +42,7 @@ class MultiChannelTelegramCollector:
         self.api_hash = api_hash
         self.phone_number = phone_number
 
-        self.client = TelegramClient(SESSION_FILE_PATH, api_id, api_hash)
+        self.client = TelegramClient(get_session_file(), api_id, api_hash)
 
         # Enhanced location mapping for Palestinian checkpoints and cities
         # Format: 'checkpoint_name': {'city': 'actual_city_name'}
@@ -580,7 +577,7 @@ class MultiChannelTelegramCollector:
         print("=" * 80)
 
         for i, msg in enumerate(messages[:max_display]):
-            print(f"\n📧 Message {i+1}:")
+            print(f"\n📧 Message {i + 1}:")
             print(f"🆔 ID: {msg['message_id']}")
             print(f" Source: {msg.get('source_channel', 'Unknown')}")
             print(f"📅 Date: {msg['message_date']}")
@@ -613,16 +610,16 @@ async def main():
 
     # Configuration
     API_ID = API__ID
-    API_HASH = APP_HASH
+    API_HASH = get_secret("appHash")
 
     print("🚀 Multi-Channel Telegram Message Collector")
     print("=" * 50)
 
-    session_file_path = get_session_file(SECRET_NAMES)
+    session_file_path = get_session_file()
     if not os.path.exists(session_file_path) or os.path.getsize(session_file_path) == 0:
         raise RuntimeError(f"❌ Session file missing or empty: {session_file_path}")
 
-    collector = MultiChannelTelegramCollector(API_ID, API_HASH, PHONE_NUMBER)
+    collector = MultiChannelTelegramCollector(API_ID, API_HASH, get_secret("PhoneNumber"))
 
     try:
         # Authenticate
@@ -695,6 +692,25 @@ async def main():
     finally:
         await collector.close()
         print("\n👋 Multi-channel collection completed!")
+
+
+def get_session_file(session_path: str = "telegram_session.session"):
+    secret_names = [
+        "telegramSessionPart1",
+        "telegramSessionPart2",
+    ]
+    full_bytes = b""
+
+    for name in secret_names:
+        part = get_secret(name)
+        full_bytes += base64.b64decode(part)
+        print(f"Retrieved secret: {name}")
+
+    with open(session_path, "wb") as f:
+        f.write(full_bytes)
+
+    print(f"✅ Session file reconstructed at: {session_path}")
+    return session_path  # return the file path
 
 
 if __name__ == "__main__":

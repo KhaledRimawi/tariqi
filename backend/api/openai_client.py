@@ -1,16 +1,18 @@
 import os
+import sys
+
+# resolve path to ../common relative to *this file*
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "common")))
 
 from dotenv import load_dotenv
-from openai import AzureOpenAI
 
-from appsecrets import OPEN_AI_CLIENT
-
-# Load .env variables
 load_dotenv()
+from keyvault_client import get_secret
+from openai import AzureOpenAI
 
 # Get values from .env
 endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
-subscription_key = OPEN_AI_CLIENT
+subscription_key = get_secret(os.getenv("OPEN_AI_SECRET_KEY"))
 
 deployment = "gpt-35-turbo"
 api_version = "2024-12-01-preview"

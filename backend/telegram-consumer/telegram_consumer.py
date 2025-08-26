@@ -1,27 +1,22 @@
-#!/usr/bin/env python3
-"""
-Enhanced Continuous Telegram Monitor
-===================================
-
-Improved version with better error handling, logging, and monitoring capabilities.
-"""
-
+import os
+import sys
+# resolve path to ../common relative to *this file*
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "common")))
 import asyncio
 import json
 import logging
-import os
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List
-
+import psutil
 from dotenv import load_dotenv
-
-from appsecrets import APP_HASH, PHONE_NUMBER
+from keyvault_client import get_secret
 from mongodb_handler import MongoDBHandler
-
 # Import our custom modules
 from multi_channel_collector import MultiChannelTelegramCollector
+
+load_dotenv()
 
 # Configure logging
 log_dir = Path("logs")
@@ -69,8 +64,8 @@ class EnhancedTelegramMonitor:
     def __init__(self):
         # Telegram API credentials
         self.API_ID = SELF_API_ID
-        self.API_HASH = APP_HASH
-        self.PHONE_NUMBER = PHONE_NUMBER
+        self.API_HASH = get_secret("appHash")
+        self.PHONE_NUMBER = get_secret("PhoneNumber")
 
         # Monitoring settings
         self.CHECK_INTERVAL = SELF_CHECK_INTERVAL
@@ -360,8 +355,6 @@ class EnhancedTelegramMonitor:
     def get_memory_usage(self):
         """Get current memory usage"""
         try:
-            import psutil
-
             process = psutil.Process()
             memory_mb = process.memory_info().rss / 1024 / 1024
             return f"{memory_mb:.1f} MB"
