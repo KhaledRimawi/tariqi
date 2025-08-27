@@ -27,9 +27,11 @@ steps:
 # 3. Package app (code + deps) into a zip
 - script: |
     cd backend/api
+    # make sure .python_packages is there
+    ls -lh .python_packages/lib/site-packages | head -20
     zip -r ../../api.zip . -x "__pycache__/*"
     ls -lh ../../
-  displayName: 'Package the Flask API'
+  displayName: 'Package the Flask API (with deps)'
 
 # 4. Publish the artifact
 - publish: $(Build.SourcesDirectory)/api.zip
