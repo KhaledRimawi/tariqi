@@ -33,6 +33,18 @@ steps:
   artifact: drop
   displayName: 'Publish Artifact'
 
+- task: AzureCLI@2
+  displayName: 'Disable Run-From-Package'
+  inputs:
+    azureSubscription: 'deployment'
+    scriptType: bash
+    scriptLocation: inlineScript
+    inlineScript: |
+      az webapp config appsettings delete \
+        --resource-group T-Project-C \
+        --name tariqi \
+        --setting-names WEBSITE_RUN_FROM_PACKAGE WEBSITE_RUN_FROM_ZIP
+
 - task: AzureWebApp@1
   displayName: 'Deploy to Azure Web App (Linux)'
   inputs:
