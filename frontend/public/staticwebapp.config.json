@@ -1,0 +1,10 @@
+{
+  "navigationFallback": {
+    "rewrite": "index.html"
+  },
+  "mimeTypes": {
+    ".json": "application/json",
+    ".webmanifest": "application/manifest+json",
+    ".mp4": "video/mp4"
+  }
+}
