@@ -62,7 +62,7 @@ const FeedbackPage = () => {
         longitude: position.coords.longitude,
       };
 
-      fetch(`${process.env.REACT_APP_BACKEND_URL}api/feedback`, {
+      fetch(`${process.env.REACT_APP_BACKEND_URL}/api/feedback`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
