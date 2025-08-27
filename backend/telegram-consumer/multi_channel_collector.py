@@ -1,26 +1,18 @@
 import base64
-import os
-import sys
-
-# resolve path to ../common relative to *this file*
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "common")))
-
 import asyncio
 import csv
 import os
 import re
 from datetime import datetime
 from typing import Any, Dict, List, Tuple
-
 from dotenv import load_dotenv
-
-load_dotenv()
 from keyvault_client import get_secret
-# Import MongoDB handler
 from mongodb_handler import MongoDBHandler
 from telethon import TelegramClient
 from telethon.errors import SessionPasswordNeededError
 from telethon.tl.types import Channel, Chat
+
+load_dotenv()
 
 
 class MultiChannelTelegramCollector:

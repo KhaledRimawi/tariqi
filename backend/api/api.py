@@ -1,6 +1,4 @@
 import os
-import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "common")))
 from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 import random
@@ -373,6 +371,7 @@ def start_api_server():
     port = int(os.getenv("PORT", 5000))
     # Always bind to 0.0.0.0 so it works both locally and in Azure
     app.run(host="0.0.0.0", port=port, debug=False, use_reloader=False)
+
 
 if __name__ == "__main__":
     start_api_server()

@@ -1,14 +1,8 @@
 import os
-import sys
-
-# resolve path to ../common relative to *this file*
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "common")))
-
 from dotenv import load_dotenv
-
-load_dotenv()
 from keyvault_client import get_secret
 from openai import AzureOpenAI
+load_dotenv()
 
 # Get values from .env
 endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")

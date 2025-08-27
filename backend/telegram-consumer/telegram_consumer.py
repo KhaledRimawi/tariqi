@@ -1,7 +1,4 @@
 import os
-import sys
-# resolve path to ../common relative to *this file*
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "common")))
 import asyncio
 import json
 import logging
