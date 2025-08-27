@@ -33,11 +33,10 @@ steps:
   artifact: drop
   displayName: 'Publish Artifact'
 
-# Deploy using the modern task, pointing to the exact artifact
 - task: AzureWebApp@1
   displayName: 'Deploy to Azure Web App (Linux)'
   inputs:
     azureSubscription: 'deployment'
     appType: 'webAppLinux'
     appName: 'tariqi'
-    package: '$(Pipeline.Workspace)/drop/tariqi.zip'
+    package: '$(Build.ArtifactStagingDirectory)/**/tariqi.zip'
