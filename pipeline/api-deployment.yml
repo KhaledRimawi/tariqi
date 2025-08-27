@@ -1,48 +1,42 @@
 trigger:
   branches:
-    include:
-      - main
+    include: [ main ]
   paths:
-    include:
-      - backend/api/*
+    include: [ backend/api/* ]
 
 pool:
   vmImage: ubuntu-latest
 
 steps:
-# 1. Setup Python
 - task: UsePythonVersion@0
   inputs:
     versionSpec: '3.11'
-  displayName: 'Use Python 3.11'
+  displayName: 'Use Python 3.11 (for lint/tests if any)'
 
-# 2. Install dependencies
+# (Optional) quick syntax check
 - script: |
     cd backend/api
-    python -m pip install --upgrade pip
-    pip install -r requirements.txt --target="./.python_packages/lib/site-packages"
-    ls -lh
-  displayName: 'Install dependencies'
+    python -m py_compile api.py wsgi.py
+  displayName: 'Sanity check Python files'
 
-# 3. Package app (code + deps) into a zip
-- script: |
-    cd backend/api
-    # make sure .python_packages is there
-    ls -lh .python_packages/lib/site-packages | head -20
-    zip -r ../../api.zip . -x "__pycache__/*"
-    ls -lh ../../
-  displayName: 'Package the Flask API (with deps)'
+# Ensure Oryx runs on the app service
+- task: AzureCLI@2
+  displayName: 'Enable Oryx build on deploy'
+  inputs:
+    azureSubscription: 'deployment'
+    scriptType: bash
+    scriptLocation: inlineScript
+    inlineScript: |
+      az webapp config appsettings set \
+        --resource-group T-Project-C \
+        --name tariqi-api \
+        --settings SCM_DO_BUILD_DURING_DEPLOYMENT=1
 
-# 4. Publish the artifact
-- publish: $(Build.SourcesDirectory)/api.zip
-  artifact: drop
-  displayName: 'Publish API artifact'
-
-# 5. Deploy to Azure Web App (Linux)
+# Deploy the **folder** (not a prebuilt zip of deps)
 - task: AzureWebApp@1
-  displayName: 'Deploy Flask API to Azure Web App (Linux)'
+  displayName: 'Deploy Flask API (Code, Oryx)'
   inputs:
     azureSubscription: 'deployment'
     appType: 'webAppLinux'
-    appName: 'tariqi-api'         # replace with your Flask API app service name
-    package: '$(Build.SourcesDirectory)/api.zip'
+    appName: 'tariqi-api'
+    package: '$(Build.SourcesDirectory)/backend/api'
