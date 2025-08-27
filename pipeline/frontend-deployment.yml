@@ -24,11 +24,12 @@ steps:
     ls -lh ..
   displayName: 'Package the build artifacts'
 
+
 - script: |
     ls -lh $(System.DefaultWorkingDirectory) # Debugging the workspace contents
   displayName: 'List Workspace Contents'
   
-- publish: $(System.DefaultWorkingDirectory)/frontend/../tariqi.zip
+- publish: $(System.DefaultWorkingDirectory)/tariqi.zip
   artifact: drop
   displayName: 'Publish Artifact'
 
