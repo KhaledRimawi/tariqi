@@ -1,7 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState , useEffect } from 'react';
 import './FeedbackPage.css';
-
+import { useMsal } from "@azure/msal-react";
+import { loginRequest } from "../auth/authConfig";
+import SignInModal from "./SignIn";
 const FeedbackPage = () => {
+  const { instance } = useMsal();
+  const activeAccount = instance.getActiveAccount();
+
+  const [modalOpen, setModalOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState('');
 
   const options = [
@@ -11,12 +17,27 @@ const FeedbackPage = () => {
     { text: 'خارج ومغلق', color: '#ffcdd2', textColor: '#c62828' }  // Red
   ];
 
-const handleSubmit = (e) => {
-  e.preventDefault();
+  useEffect(() => {
+    if (!activeAccount) {
+      setModalOpen(true); 
+    }
+  }, [activeAccount]);
 
-  if (!selectedOption) return;
+  const handleSignIn = () => {
+    instance.loginRedirect({ ...loginRequest }); 
+  };
 
-  if (!navigator.geolocation) {
+  const handleCloseModal = () => setModalOpen(false);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+  
+    if (!activeAccount) {
+      setModalOpen(true); // force sign-in if not logged in
+      return;
+    }
+
+     if (!navigator.geolocation) {
     alert("❌ Geolocation is not supported by your browser");
     return;
   }
@@ -41,7 +62,7 @@ const handleSubmit = (e) => {
         longitude: position.coords.longitude,
       };
 
-      fetch("http://localhost:5000/api/feedback", {
+      fetch(`${process.env.REACT_APP_BACKEND_URL}api/feedback`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -65,8 +86,15 @@ const handleSubmit = (e) => {
 };
 
 
+
   return (
     <div className="feedback-page-container">
+            {/* Sign-In Modal */}
+      <SignInModal
+        isOpen={modalOpen}
+        onClose={handleCloseModal}
+        onSignIn={handleSignIn}
+      />
       <h1 className="feedback-page-title">💬 صفحة الملاحظات</h1>
       <p className="feedback-page-subtitle">ساهم بمعلومة تفيد الجميع 🙏</p>
 
