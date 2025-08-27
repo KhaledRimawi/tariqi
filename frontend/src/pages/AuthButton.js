@@ -15,11 +15,21 @@ const AuthButton = () => {
     instance.logoutRedirect().catch(e => console.error(e));
   };
 
-  return (
-    <button className="auth-button" onClick={activeAccount ? handleLogout : handleLogin}>
-      {activeAccount ? "Sign Out" : "Sign In"}
-    </button>
+    return (
+    <div className="auth-wrapper">
+      {activeAccount && (
+        <div className="user-badge">
+          <span className="avatar">{activeAccount.name.charAt(0)}</span>
+          <span className="username">Hello, {activeAccount.name}!</span>
+        </div>
+      )}
+      <button
+        className={`auth-button ${activeAccount ? "logout" : "login"}`}
+        onClick={activeAccount ? handleLogout : handleLogin}
+      >
+        {activeAccount ? "Sign Out" : "Sign In"}
+      </button>
+    </div>
   );
 };
-
 export default AuthButton;

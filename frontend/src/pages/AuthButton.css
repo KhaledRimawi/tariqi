@@ -1,19 +1,72 @@
-.auth-button {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 6px;
-  background: linear-gradient(135deg, #0078d4, #005a9e);
+.auth-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Transparent username badge */
+.user-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 6px 14px;
+  border-radius: 30px;
+  font-weight: 500;
+  font-size: 14px;
   color: white;
+  backdrop-filter: blur(6px);
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+.user-badge:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Avatar inside transparent badge */
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0078d4;
+  color: white;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+/* Greeting text */
+.username {
+  color: white;
+}
+
+/* Auth button (keeps modern pill style) */
+.auth-button {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 30px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  transition: background 0.3s ease, transform 0.2s ease;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.auth-button.login {
+  background: linear-gradient(135deg, #0078d4, #005a9e);
+  color: white;
+}
+
+.auth-button.logout {
+  background: #e74c3c;
+  color: white;
 }
 
 .auth-button:hover {
-  background: linear-gradient(135deg, #005a9e, #004578);
   transform: translateY(-2px);
+  filter: brightness(1.1);
 }
 
 .auth-button:active {
