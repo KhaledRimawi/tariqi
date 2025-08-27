@@ -26,17 +26,18 @@ steps:
 
 
 - script: |
-    ls -lh $(System.DefaultWorkingDirectory) # Debugging the workspace contents
+    ls -lh $(Build.SourcesDirectory) # Debugging the workspace contents
   displayName: 'List Workspace Contents'
   
-- publish: $(System.DefaultWorkingDirectory)/tariqi.zip
+- publish: $(Build.SourcesDirectory)/tariqi.zip
   artifact: drop
   displayName: 'Publish Artifact'
 
-- task: AzureRmWebAppDeployment@4
+# Deploy using the modern task, pointing to the exact artifact
+- task: AzureWebApp@1
+  displayName: 'Deploy to Azure Web App (Linux)'
   inputs:
-    ConnectionType: 'AzureRM'
     azureSubscription: 'deployment'
-    appType: 'webApp'
-    WebAppName: 'tariqi'
-    packageForLinux: '$(System.DefaultWorkingDirectory)/**/tariqi.zip'
+    appType: 'webAppLinux'
+    appName: 'tariqi'
+    package: '$(Pipeline.Workspace)/drop/tariqi.zip'
