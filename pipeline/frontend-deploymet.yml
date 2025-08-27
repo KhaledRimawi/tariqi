@@ -1,9 +1,0 @@
-- task: AzureRmWebAppDeployment@5
-  inputs:
-    ConnectionType: 'AzureRM'
-    azureSubscription: 'First Semester Training 24/25(ac36b5e0-6688-41c3-864e-0ee2c714faef)'
-    appType: 'webAppLinux'
-    WebAppName: 'tariqi'
-    packageForLinux: '$(System.DefaultWorkingDirectory)/**/*.zip'
-    RuntimeStack: 'NODE|22-lts'
-    DeploymentTypeLinux: 'oneDeploy'
