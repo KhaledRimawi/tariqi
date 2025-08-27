@@ -1,0 +1,41 @@
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - frontend/*
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '22.x'
+  displayName: 'Install Node.js'
+
+- script: |
+    cd frontend
+    npm install
+    npm run build
+    cd dist
+    zip -r ../../tariqi.zip .
+    ls -lh ..
+  displayName: 'Package the build artifacts'
+
+- script: |
+    ls -lh $(System.DefaultWorkingDirectory) # Debugging the workspace contents
+  displayName: 'List Workspace Contents'
+  
+- publish: $(System.DefaultWorkingDirectory)/frontend/../tariqi.zip
+  artifact: drop
+  displayName: 'Publish Artifact'
+
+- task: AzureRmWebAppDeployment@4
+  inputs:
+    ConnectionType: 'AzureRM'
+    azureSubscription: 'deployment'
+    appType: 'webApp'
+    WebAppName: 'tariqi'
+    packageForLinux: '$(System.DefaultWorkingDirectory)/**/tariqi.zip'
