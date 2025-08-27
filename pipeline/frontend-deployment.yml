@@ -19,7 +19,7 @@ steps:
     cd frontend
     npm install
     npm run build
-    cd dist
+    cd build
     zip -r ../../tariqi.zip .
     ls -lh ..
   displayName: 'Package the build artifacts'
