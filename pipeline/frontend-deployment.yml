@@ -39,4 +39,4 @@ steps:
     azureSubscription: 'deployment'
     appType: 'webAppLinux'
     appName: 'tariqi'
-    package: '$(Build.ArtifactStagingDirectory)/**/tariqi.zip'
+    package: '$(Build.SourcesDirectory)/**/tariqi.zip'
