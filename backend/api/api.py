@@ -23,9 +23,7 @@ mongo = PyMongo(app)
 # Reading variables from the environment
 COLLECTION_DATA = os.getenv("MONGO_COLLECTION_DATA")
 COLLECTION_LOCATIONS = os.getenv("MONGO_COLLECTION_LOCATIONS")
-HOST = os.getenv("FLASK_HOST")
-PORT = int(os.getenv("FLASK_PORT"))
-DEBUG = os.getenv("FLASK_DEBUG").lower() == "true"
+
 
 # Collections
 data_collection = mongo.db[COLLECTION_DATA]
@@ -34,7 +32,7 @@ location_collection = mongo.db[COLLECTION_LOCATIONS]
 RADIUS_KM = float(os.getenv("RADIUS_IN_KM"))
 
 # Verify that the values exist
-if not COLLECTION_DATA or not COLLECTION_LOCATIONS or not HOST or not PORT:
+if not COLLECTION_DATA or not COLLECTION_LOCATIONS:
     raise ValueError(
         "❌ COLLECTION_DATA or COLLECTION_LOCATIONS or RADIUS_IN_KM or HOST or " "PORT is missing in .env file"
     )
@@ -370,23 +368,11 @@ def submit_feedback():
 
 
 # ---------------- Server Function ----------------
-def start_api_server(port=None, host=None):
-    """Start the API server using environment variables as defaults"""
-    # Use environment variables if no parameters provided
-    if port is None:
-        port = PORT
-    if host is None:
-        host = HOST
-    print("🚀 Starting Unified API Server...")
-    print(f"🌐 API will run on: http://{host}:{port}")
-    print("\n📋 All Endpoints Available:")
-    print("  📊 Data Collection & Search")
-    print("  📍 Location & Position Services")
-    print("  🔍 Checkpoint Monitoring")
-    print("  🗺️ Geospatial Queries")
+def start_api_server():
     print("\n🤝 Team Integration Ready!")
-    app.run(host=host, port=port, debug=False, use_reloader=False)
-
+    port = int(os.getenv("PORT", 5000))
+    # Always bind to 0.0.0.0 so it works both locally and in Azure
+    app.run(host="0.0.0.0", port=port, debug=False, use_reloader=False)
 
 if __name__ == "__main__":
     start_api_server()

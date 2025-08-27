@@ -1,0 +1,46 @@
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - backend/api/*
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+# 1. Setup Python
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.11'
+  displayName: 'Use Python 3.11'
+
+# 2. Install dependencies
+- script: |
+    cd backend/api
+    python -m pip install --upgrade pip
+    pip install -r requirements.txt --target="./.python_packages/lib/site-packages"
+    ls -lh
+  displayName: 'Install dependencies'
+
+# 3. Package app (code + deps) into a zip
+- script: |
+    cd backend/api
+    zip -r ../../api.zip . -x "__pycache__/*"
+    ls -lh ../../
+  displayName: 'Package the Flask API'
+
+# 4. Publish the artifact
+- publish: $(Build.SourcesDirectory)/api.zip
+  artifact: drop
+  displayName: 'Publish API artifact'
+
+# 5. Deploy to Azure Web App (Linux)
+- task: AzureWebApp@1
+  displayName: 'Deploy Flask API to Azure Web App (Linux)'
+  inputs:
+    azureSubscription: 'deployment'
+    appType: 'webAppLinux'
+    appName: 'tariqi-api'         # replace with your Flask API app service name
+    package: '$(Build.SourcesDirectory)/api.zip'
