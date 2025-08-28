@@ -32,11 +32,6 @@ const Navbar = () => {
           </NavLink>
         </li>
         <li>
-          <NavLink to="/destination-search" onClick={() => setIsOpen(false)} className={({ isActive }) => isActive ? "active-link" : ""}>
-            Destination Search
-          </NavLink>
-        </li>
-        <li>
           <NavLink to="/feedback" onClick={() => setIsOpen(false)} className={({ isActive }) => isActive ? "active-link" : ""}>
             Feedback
           </NavLink>

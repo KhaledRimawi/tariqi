@@ -11,7 +11,6 @@ import psutil
 from dotenv import load_dotenv
 from keyvault_client import get_secret
 from mongodb_handler import MongoDBHandler
-
 # Import our custom modules
 from multi_channel_collector import MultiChannelTelegramCollector
 
