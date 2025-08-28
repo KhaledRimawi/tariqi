@@ -18,6 +18,8 @@ const Map = () => {
   const checkpointMarkersRef = useRef([]);
   const userMarkerRef = useRef(null);
   const [checkpoints, setCheckpoints] = useState([]);
+  const REFRESH_MS  = Number(process.env.REACT_APP_MAP_REFRESH_MS)  || 30000;
+  const AGO_MINUTES = Number(process.env.REACT_APP_MAP_AGO_MINUTES) || 90;
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -28,23 +30,40 @@ const Map = () => {
     }
   };
 
-  useEffect(() => {
-    const fetchCheckpoints = async () => {
-      try {
-        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/checkpoints/merged`);
+  const formatTime = (isoString) => {
+    if (!isoString) return 'N/A';
+    try {
+      return new Date(isoString).toLocaleString(undefined, {
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+        hour12: false
+      });
+    } catch {
+      return isoString;
+    }
+  };
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const mergedCheckpoints = await response.json();
-        
-        setCheckpoints(mergedCheckpoints);
+  useEffect(() => {
+    let timerId;
+
+    const load = async () => {
+      try {
+        const base = process.env.REACT_APP_BACKEND_URL;
+        const response = await fetch(`${base}/api/checkpoints/query?all=true&latest=true`);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+        const list = Array.isArray(data?.results) ? data.results : [];
+        const filtered = list.filter(p => Number.isFinite(p.lat) && Number.isFinite(p.lng));
+        setCheckpoints(filtered);
       } catch (error) {
         console.error("Could not fetch checkpoints:", error);
+        setCheckpoints([]);
       }
     };
-    fetchCheckpoints();
+
+    load();
+    timerId = setInterval(load, REFRESH_MS);
+    return () => clearInterval(timerId);
   }, []);
 
   useEffect(() => {
@@ -64,21 +83,22 @@ const Map = () => {
   }, []);
 
   useEffect(() => {
-    if (!mapRef.current || checkpoints.length === 0) return;
+    if (!mapRef.current) return;
     checkpointMarkersRef.current.forEach(marker => mapRef.current.removeLayer(marker));
     checkpointMarkersRef.current = [];
+    if (checkpoints.length === 0) return;
     checkpoints.forEach(checkpoint => {
-      if (checkpoint.lat && checkpoint.lng) {
+      if (Number.isFinite(checkpoint.lat) && Number.isFinite(checkpoint.lng)) {
         const checkpointColor = getStatusColor(checkpoint.status);
         const checkpointSvgIcon = `<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="${checkpointColor}" stroke="#FFF" stroke-width="2"/><text x="12" y="16" font-family="Arial" font-size="10" fill="#FFF" text-anchor="middle">${checkpoint.checkpoint_name ? checkpoint.checkpoint_name.charAt(0) : '?'}</text></svg>`;
         const checkpointIcon = L.divIcon({ className: '', html: checkpointSvgIcon, iconSize: [24, 24], iconAnchor: [12, 12], popupAnchor: [0, -12] });
         const marker = L.marker([checkpoint.lat, checkpoint.lng], { icon: checkpointIcon })
           .addTo(mapRef.current)
-          .bindPopup(`<b>${checkpoint.checkpoint_name || 'N/A'}</b><br>Status: ${checkpoint.status || 'N/A'}<br>Direction: ${checkpoint.direction || 'N/A'}`);
+          .bindPopup(`<b>${checkpoint.checkpoint_name || 'N/A'}</b><br>Status: ${checkpoint.status || 'N/A'}<br>Direction: ${checkpoint.direction || 'N/A'}<br>Time: ${formatTime(checkpoint.message_date)}`);
         checkpointMarkersRef.current.push(marker);
       }
     });
-  }, [checkpoints, mapRef.current]);
+  }, [checkpoints]);
 
   // Updated effect for adding the user's location with a red professional icon
   useEffect(() => {

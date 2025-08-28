@@ -69,7 +69,6 @@ def home():
                 "position_location": [
                     "/api/near_location",
                     "/api/closest-checkpoint",
-                    "/api/checkpoints/merged",
                     "/api/checkpoints/query",
                 ],
                 "ai_chat": ["/api/ask-ai"],
@@ -99,30 +98,6 @@ def ask_ai():
         return jsonify({"success": True, "prompt": user_prompt, "response": answer})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
-# ---------------- User on the frontend (Map.js) page ----------------
-@app.route("/api/checkpoints/merged", methods=["GET"])
-def get_merged_checkpoints():
-    locations = location_collection.find()
-    merged_data = []
-    for loc in locations:
-        latest_status = data_collection.find_one(
-            {"checkpoint_name": loc.get("checkpoint")},
-            sort=[("message_date", -1)],
-        )
-        merged_checkpoint = {
-            "checkpoint_id": str(loc.get("_id")),
-            "checkpoint_name": loc.get("checkpoint"),
-            "city": loc.get("city"),
-            "lat": loc.get("lat"),
-            "lng": loc.get("lng"),
-            "status": (latest_status.get("status") if latest_status else "N/A"),
-            "direction": (latest_status.get("direction") if latest_status else "N/A"),
-            "message_date": (latest_status.get("message_date") if latest_status else "N/A"),
-        }
-        merged_data.append(merged_checkpoint)
-    return jsonify(merged_data)
 
 
 # ---------------- User on the frontend (PushNotificationSetup.js) page ----------------
@@ -232,8 +207,11 @@ def get_closest_checkpoint():
 @app.route("/api/checkpoints/query", methods=["GET"])
 def search_road_conditions():
     """
-    API to query road conditions with multiple optional filters.
-    Filters are applied in the order: ago -> others -> top.
+    Query checkpoints.
+
+    Modes:
+    - all=true  -> start from locations (every checkpoint with lat/lng), join the latest status from data.
+                   Supports filters: checkpoint, city, status, direction, ago, top.
     """
     try:
         checkpoint_name = request.args.get("checkpoint", "")
@@ -242,24 +220,108 @@ def search_road_conditions():
         direction = request.args.get("direction", "")
         ago_filter = request.args.get("ago", "")
         top_filter = request.args.get("top", "")
+        latest_flag = request.args.get("latest", "false").lower() == "true"
+        with_location = request.args.get("with_location", "false").lower() == "true"
+        all_flag = request.args.get("all", "false").lower() == "true"
 
-        # Build the MongoDB query filter
+        if all_flag:
+            ago_cutoff = None
+            if ago_filter:
+                try:
+                    ago_value = int(ago_filter)
+                    if ago_value < 0:
+                        return jsonify({"error": "Ago value must be a positive integer."}), 400
+                    ago_cutoff = datetime.utcnow() - timedelta(minutes=ago_value)
+                except ValueError:
+                    return jsonify({"error": "Invalid value for 'ago'. Please use a positive integer."}), 400
+
+            match_locs = {"lat": {"$exists": True}, "lng": {"$exists": True}}
+            if checkpoint_name:
+                match_locs["checkpoint"] = {"$regex": checkpoint_name.strip('"'), "$options": "i"}
+            if city_name:
+                match_locs["city"] = {"$regex": city_name.strip('"'), "$options": "i"}
+
+            lookup_pipeline = [
+                {
+                    "$match": {
+                        "$expr": {"$and": [{"$eq": ["$city_name", "$$cty"]}, {"$eq": ["$checkpoint_name", "$$cp"]}]}
+                    }
+                }
+            ]
+            if ago_cutoff:
+                lookup_pipeline.append({"$match": {"message_date": {"$gte": ago_cutoff}}})
+            lookup_pipeline.extend([{"$sort": {"message_date": -1}}, {"$limit": 1}])
+
+            pipeline = [
+                {"$match": match_locs},
+                {
+                    "$lookup": {
+                        "from": COLLECTION_DATA,  # name of your data collection from .env
+                        "let": {"cty": "$city", "cp": "$checkpoint"},
+                        "pipeline": lookup_pipeline,
+                        "as": "latest",
+                    }
+                },
+                {"$unwind": {"path": "$latest", "preserveNullAndEmptyArrays": True}},
+            ]
+
+            # post-filters on the joined latest status
+            post_match = {}
+            if status:
+                post_match["latest.status"] = {"$regex": status.strip('"'), "$options": "i"}
+            if direction:
+                post_match["latest.direction"] = {"$regex": direction.strip('"'), "$options": "i"}
+            if post_match:
+                pipeline.append({"$match": post_match})
+
+            pipeline.append(
+                {
+                    "$project": {
+                        "_id": 0,
+                        "checkpoint_name": "$checkpoint",
+                        "city_name": "$city",
+                        "lat": 1,
+                        "lng": 1,
+                        "status": "$latest.status",
+                        "direction": "$latest.direction",
+                        "message": "$latest.message",
+                        "message_date": "$latest.message_date",
+                    }
+                }
+            )
+
+            #  top limit
+            if top_filter:
+                try:
+                    n = int(top_filter)
+                    if n > 0:
+                        pipeline.append({"$limit": n})
+                except ValueError:
+                    return jsonify({"error": "Invalid value for 'top'. Please use a positive integer."}), 400
+
+            docs = list(location_collection.aggregate(pipeline))
+
+            # Serialize message_date
+            out = []
+            for d in docs:
+                md = d.get("message_date")
+                if isinstance(md, datetime):
+                    d["message_date"] = md.isoformat()
+                out.append(d)
+
+            return jsonify({"results": out, "count": len(out)}), 200
+
         mongo_filter = {}
-
-        # ago filter first if it exists
         if ago_filter:
             try:
                 ago_value = int(ago_filter)
                 if ago_value < 0:
                     return jsonify({"error": "Ago value must be a positive integer."}), 400
-
                 cutoff_time = datetime.utcnow() - timedelta(minutes=ago_value)
-
                 mongo_filter["message_date"] = {"$gte": cutoff_time}
             except ValueError:
-                return jsonify({"error": ("Invalid value for 'ago'. Please use a positive integer.")}), 400
+                return jsonify({"error": "Invalid value for 'ago'. Please use a positive integer."}), 400
 
-        #  Apply all other filters
         if checkpoint_name:
             mongo_filter["checkpoint_name"] = {"$regex": checkpoint_name.strip('"'), "$options": "i"}
         if city_name:
@@ -271,24 +333,74 @@ def search_road_conditions():
 
         sort_order = [("message_date", -1)]
 
-        #  Apply the 'top' filter as a limit after all other filters are applied
         limit = 0
         if top_filter:
             try:
                 limit = int(top_filter)
                 if limit < 1:
-                    return jsonify({"error": ("Top value must be a positive integer greater than 0.")}), 400
+                    return jsonify({"error": "Top value must be a positive integer greater than 0."}), 400
             except ValueError:
-                return jsonify({"error": ("Invalid value for 'top'. Please use a positive integer.")}), 400
+                return jsonify({"error": "Invalid value for 'top'. Please use a positive integer."}), 400
 
         messages = list(data_collection.find(mongo_filter).sort(sort_order).limit(limit))
 
-        for msg in messages:
-            msg["_id"] = str(msg["_id"])
-            if isinstance(msg.get("message_date"), datetime):
-                msg["message_date"] = msg["message_date"].isoformat()
+        if latest_flag:
+            seen = set()
+            reduced = []
+            for d in messages:
+                key = (d.get("city_name"), d.get("checkpoint_name"))
+                if key not in seen:
+                    seen.add(key)
+                    reduced.append(d)
+            messages = reduced
 
-        return jsonify({"results": messages, "count": len(messages)})
+        if with_location and messages:
+            wanted_pairs = []
+            pair_set = set()
+            for m in messages:
+                c = m.get("city_name")
+                cp = m.get("checkpoint_name")
+                if c and cp:
+                    key = (c, cp)
+                    if key not in pair_set:
+                        pair_set.add(key)
+                        wanted_pairs.append({"city": c, "checkpoint": cp})
+
+            if wanted_pairs:
+                loc_cursor = location_collection.find({"$or": wanted_pairs})
+                loc_map = {
+                    (loc.get("city"), loc.get("checkpoint")): (loc.get("lat"), loc.get("lng")) for loc in loc_cursor
+                }
+            else:
+                loc_map = {}
+
+            for m in messages:
+                key = (m.get("city_name"), m.get("checkpoint_name"))
+                if key in loc_map:
+                    m["lat"], m["lng"] = loc_map[key]
+
+        out = []
+        for msg in messages:
+            item = {
+                "_id": str(msg.get("_id")),
+                "checkpoint_name": msg.get("checkpoint_name"),
+                "city_name": msg.get("city_name"),
+                "status": msg.get("status"),
+                "direction": msg.get("direction"),
+                "message": msg.get("message"),
+                "message_date": (
+                    msg.get("message_date").isoformat()
+                    if isinstance(msg.get("message_date"), datetime)
+                    else msg.get("message_date")
+                ),
+            }
+            if "lat" in msg:
+                item["lat"] = msg["lat"]
+            if "lng" in msg:
+                item["lng"] = msg["lng"]
+            out.append(item)
+
+        return jsonify({"results": out, "count": len(out)}), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
