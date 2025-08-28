@@ -1,7 +1,9 @@
 import os
+
 from dotenv import load_dotenv
 from keyvault_client import get_secret
 from openai import AzureOpenAI
+
 load_dotenv()
 
 # Get values from .env
