@@ -118,6 +118,7 @@ const VoiceChatbot = () => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
+      setInputText('');
     }
   };
 
