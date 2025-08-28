@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './FeedbackPage.css';
 import { useMsal } from "@azure/msal-react";
 import { loginRequest } from "../auth/authConfig";
@@ -14,6 +14,10 @@ const FeedbackPage = () => {
   const [closestCheckpoint, setClosestCheckpoint] = useState(null);
   const [loading, setLoading] = useState(false);
   const [locationError, setLocationError] = useState('');
+
+  // Add refs to prevent duplicate calls
+  const isLocationFetched = useRef(false);
+  const isLocationFetching = useRef(false);
 
   const statusOptions = [
     { text: 'مفتوح', color: '#c8e6c9', textColor: '#2e7d32' }, // Green
@@ -31,17 +35,25 @@ const FeedbackPage = () => {
     if (!activeAccount) {
       setModalOpen(true);
     } else {
-      getCurrentLocationAndCheckpoint();
+      // Only fetch location if not already fetched or fetching
+      if (!isLocationFetched.current && !isLocationFetching.current) {
+        getCurrentLocationAndCheckpoint();
+      }
     }
-    // eslint-disable-next-line
-  }, [activeAccount]);
+  }, [activeAccount]); // Keep activeAccount as dependency but add controls
 
   const getCurrentLocationAndCheckpoint = () => {
+    // Prevent duplicate calls
+    if (isLocationFetching.current || isLocationFetched.current) {
+      return;
+    }
+
     if (!navigator.geolocation) {
       setLocationError("❌ Geolocation is not supported by your browser");
       return;
     }
 
+    isLocationFetching.current = true;
     setLoading(true);
     setLocationError('');
 
@@ -60,6 +72,7 @@ const FeedbackPage = () => {
                 latitude,
                 longitude
               });
+              isLocationFetched.current = true;
             } else {
               setLocationError("❌ لم نتمكن من العثور على أقرب حاجز");
             }
@@ -70,12 +83,14 @@ const FeedbackPage = () => {
           })
           .finally(() => {
             setLoading(false);
+            isLocationFetching.current = false;
           });
       },
       (err) => {
         console.error("Geolocation error:", err);
         setLocationError("❌ لم نتمكن من الحصول على موقعك الحالي");
         setLoading(false);
+        isLocationFetching.current = false;
       }
     );
   };
@@ -85,6 +100,13 @@ const FeedbackPage = () => {
   };
 
   const handleCloseModal = () => setModalOpen(false);
+
+  const handleRetryLocation = () => {
+    // Reset the flags to allow retry
+    isLocationFetched.current = false;
+    isLocationFetching.current = false;
+    getCurrentLocationAndCheckpoint();
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -111,6 +133,13 @@ const FeedbackPage = () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("Inserted feedback:", data);
+        alert("✅ تم إرسال الملاحظة بنجاح!");
+        setStatus("");
+        setDirection("");
+      })
       .catch((err) => {
         console.error("Error submitting feedback:", err);
         alert("❌ حدث خطأ أثناء إرسال الملاحظة");
@@ -138,7 +167,7 @@ const FeedbackPage = () => {
       {locationError && (
         <div className="location-info error">
           <p>{locationError}</p>
-          <button onClick={getCurrentLocationAndCheckpoint} className="retry-btn">
+          <button onClick={handleRetryLocation} className="retry-btn">
             🔄 إعادة المحاولة
           </button>
         </div>
