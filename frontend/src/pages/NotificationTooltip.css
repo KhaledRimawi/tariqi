@@ -1,0 +1,53 @@
+.tooltip-container {
+  position: relative;
+  display: inline-block;
+  margin-left: 12px; /* space from logo */
+}
+
+/* Icon background (smaller circle) */
+.borde-back {
+  width: 30px;
+  height: 30px;
+  background-color: rgba(255, 255, 255, 0.1); 
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+/* Icon itself (smaller) */
+.icon {
+  font-size: 20px;
+  color: #ff5100; /* warning yellow */
+}
+
+/* Tooltip message */
+.tooltip {
+  position: absolute;
+  top: 50%;
+  left: 36px; /* slightly closer to icon */
+  transform: translateY(-50%) translateX(0);
+  background: linear-gradient(90deg, #555, #222); /* subtle dark gradient */
+  color: white;
+  padding: 6px 12px;
+  border-radius: 10px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  font-size: 13px;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+/* Hover effects */
+.tooltip-container:hover .tooltip {
+  opacity: 1;
+  transform: translateY(-50%) translateX(5px); /* slides tooltip */
+}
+
+.tooltip-container:hover .borde-back {
+  transform: translateY(-2px); /* icon moves up slightly */
+}

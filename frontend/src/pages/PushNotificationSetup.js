@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect  } from 'react';
 import getLocation from '../utils/getLocation';
 
-export default function PushNotificationSetup() {
+export default function PushNotificationSetup({ setNotificationStatus })  {
   useEffect(() => {
     //  Register service worker
     if ('serviceWorker' in navigator) {
@@ -21,50 +21,20 @@ export default function PushNotificationSetup() {
     async function askPermissionAndNotify() {
       if (!("Notification" in window)) {
         alert("This browser does not support notifications.");
+        setNotificationStatus("unsupported");
         return;
       }
 
       const permission = await Notification.requestPermission();
       if (permission === "granted") {
         console.log("✅ Notification permission granted.");
-        await notifyNearbyCheckpoints(); 
-        //await sendNotificationForClosedCheckpoints();
-        
+        setNotificationStatus("granted");
+        await notifyNearbyCheckpoints();   
       } else {
         console.log("❌ Permission denied");
-        alert("Notifications are blocked.");
-      }
+        setNotificationStatus("denied");
+      } 
     }
-
-async function sendNotificationForClosedCheckpoints() {
-  try {
-    const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/data/show`);
-    const data = await response.json();
-
-    // Show first 3 items just to make sure notifications work
-    const sampleData = data.slice(0, 3); // Remove this line later
-
-    for (const item of sampleData) {
-      const title = `🚧 تنبيه حول حاجز ${item.checkpoint_name}`;
-      const options = {
-        body: `🔘 المعبر: ${item.checkpoint_name}
-📍 المدينة: ${item.city_name}
-📊 الحالة: ${item.status}
-🔄 الاتجاه: ${item.direction || "غير معروف"}
-🕒 ${new Date(item.message_date).toLocaleString("ar-EG")}`,
-        icon: '/icon.png',
-      };
-
-      // Use Service Worker to show the notification
-      const reg = await navigator.serviceWorker.getRegistration();
-      if (reg) {
-        reg.showNotification(title, options);
-      }
-    }
-  } catch (error) {
-    console.error("❌ Failed to fetch or send notifications:", error);
-  }
-}
 
 async function notifyNearbyCheckpoints() {
   try {
@@ -106,8 +76,5 @@ async function notifyNearbyCheckpoints() {
 
 
   }, []);
-
   return null;
 }
-
-

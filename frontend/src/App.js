@@ -1,4 +1,4 @@
-import React from 'react';
+import React , { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './navbar';
 import Home from './pages/Home';
@@ -8,11 +8,16 @@ import FeedbackPage from './pages/FeedbackPage'; // ✅ Import FeedbackPage
 import VoiceChatBot from './pages/VoiceChatBot';
 
 const App = () => {
+  const [notificationStatus, setNotificationStatus] = useState(null);
+
   return (
     <Router>
-      <Navbar />
+      <Navbar notificationStatus={notificationStatus} />
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route
+          path="/"
+          element={<Home setNotificationStatus={setNotificationStatus} />}
+        />
         <Route path="/about" element={<About />} />
         <Route path="/map" element={<MapPage />} />
         <Route path="/voice-chat-bot" element={<VoiceChatBot />} />
