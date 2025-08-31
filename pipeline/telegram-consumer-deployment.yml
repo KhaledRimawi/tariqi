@@ -1,0 +1,23 @@
+trigger:
+  branches:
+    include: [ main ]
+  paths:
+    include: [ backend/telegram-consumer/* ]
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.11'
+  displayName: 'Use Python 3.11'
+
+# Deploy the **folder** (not a prebuilt zip of deps)
+- task: AzureWebApp@1
+  displayName: 'Deploy Consumer'
+  inputs:
+    azureSubscription: 'deployment'
+    appType: 'webAppLinux'
+    appName: 'tariqi-data'
+    package: '$(Build.SourcesDirectory)/backend/telegram-consumer'

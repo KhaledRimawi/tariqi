@@ -1,19 +1,24 @@
 import os
+from functools import lru_cache
 
 from azure.identity import ClientSecretCredential
 from azure.keyvault.secrets import SecretClient
 
 
-def get_secret(secret_name: str):
-    """Fetch secret from Azure Key Vault"""
-    secret_client = SecretClient(
-        vault_url=os.getenv("KEY_VAULT_URL"),
-        credential=ClientSecretCredential(
-            tenant_id=os.getenv("TENANT_ID"), client_id=os.getenv("CLIENT_ID"), client_secret=(os.getenv("AppSecret"))
-        ),
-    )
+@lru_cache(maxsize=1)
+def _secret_client() -> SecretClient:
+    vault_url = os.getenv("KEY_VAULT_URL")
+    tenant_id = os.getenv("TENANT_ID")
+    client_id = os.getenv("CLIENT_ID")
+    client_secret = os.getenv("AppSecret")
+    if not all([vault_url, tenant_id, client_id, client_secret]):
+        raise RuntimeError("Missing Key Vault/AAD env vars.")
+    cred = ClientSecretCredential(tenant_id=tenant_id, client_id=client_id, client_secret=client_secret)
+    return SecretClient(vault_url=vault_url, credential=cred)
+
+
+def get_secret(name: str) -> str:
     try:
-        secret = secret_client.get_secret(secret_name)
-        return secret.value
+        return _secret_client().get_secret(name).value
     except Exception as e:
-        raise RuntimeError(f"Unable to fetch secret '{secret_name}': {e}")
+        raise RuntimeError(f"Unable to fetch secret '{name}': {e}")
