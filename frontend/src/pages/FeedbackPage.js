@@ -36,6 +36,7 @@ const FeedbackPage = () => {
       setModalOpen(true);
     } else {
       // Only fetch location if not already fetched or fetching
+      setModalOpen(false);
       if (!isLocationFetched.current && !isLocationFetching.current) {
         getCurrentLocationAndCheckpoint();
       }
@@ -96,7 +97,9 @@ const FeedbackPage = () => {
   };
 
   const handleSignIn = () => {
-    instance.loginRedirect({ ...loginRequest });
+    instance.loginRedirect({ ...loginRequest , 
+      redirectUri: window.location.href,
+    });
   };
 
   const handleCloseModal = () => setModalOpen(false);
