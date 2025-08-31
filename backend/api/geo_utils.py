@@ -2,6 +2,11 @@ import math
 
 
 def haversine(lat1, lon1, lat2, lon2):
+    """
+    Calculate the great circle distance between two points
+    on the earth (specified in decimal degrees)
+    Returns distance in kilometers
+    """
     R = 6371  # Earth radius in KM
     d_lat = math.radians(lat2 - lat1)
     d_lon = math.radians(lon2 - lon1)

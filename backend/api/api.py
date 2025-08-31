@@ -2,6 +2,7 @@ import os
 import random
 from datetime import datetime, timedelta, timezone
 
+from ai_prompt_builder import AIPromptBuilder
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -28,13 +29,14 @@ COLLECTION_LOCATIONS = os.getenv("MONGO_COLLECTION_LOCATIONS")
 data_collection = mongo.db[COLLECTION_DATA]
 location_collection = mongo.db[COLLECTION_LOCATIONS]
 
-RADIUS_KM = float(os.getenv("RADIUS_IN_KM"))
+# Initialize AI Prompt Builder
+ai_prompt_builder = AIPromptBuilder(mongo)
+
+RADIUS_KM = float(os.getenv("RADIUS_IN_KM", "10"))
 
 # Verify that the values exist
 if not COLLECTION_DATA or not COLLECTION_LOCATIONS:
-    raise ValueError(
-        "❌ COLLECTION_DATA or COLLECTION_LOCATIONS or RADIUS_IN_KM or HOST or " "PORT is missing in .env file"
-    )
+    raise ValueError("❌ COLLECTION_DATA or COLLECTION_LOCATIONS is missing in .env file")
 
 
 # ---------------- Helper Functions ----------------
@@ -81,9 +83,10 @@ def home():
 @app.route("/api/ask-ai", methods=["POST"])
 def ask_ai():
     """
-    Endpoint to send a user prompt to Azure OpenAI and return the GPT response.
+    Enhanced AI endpoint that provides intelligent responses about checkpoint status
+    with real-time data from MongoDB.
     Request format:
-        { "prompt": "Your question here" }
+        { "prompt": "ما هي حالة حاجز قلنديا؟" }
     """
     try:
         data = request.get_json()
@@ -92,11 +95,42 @@ def ask_ai():
         if not user_prompt:
             return jsonify({"error": "No prompt provided"}), 400
 
-        # Call the function from client.py
-        answer = get_gpt_response(user_prompt)
+        print("📝 User query: {user_prompt}")
 
-        return jsonify({"success": True, "prompt": user_prompt, "response": answer})
+        # Check if this is a checkpoint-related query
+        if ai_prompt_builder.is_checkpoint_query(user_prompt):
+            # Build smart prompt with MongoDB context
+            enhanced_prompt = ai_prompt_builder.build_smart_prompt(user_prompt)
+            print("🧠 Enhanced prompt built with checkpoint context")
+        else:
+            # Use regular prompt for general queries
+            enhanced_prompt = f"""
+أنت مساعد ذكي متخصص في الإجابة على الأسئلة باللغة العربية.
+
+سؤال المستخدم: "{user_prompt}"
+
+يرجى تقديم إجابة مفيدة ومناسبة. إذا كان السؤال متعلق بالحواجز أو الطرق،
+أعلم المستخدم أنه يمكن السؤال عن حالة الحواجز بذكر اسم الحاجز مثل "ما هي حالة حاجز قلنديا؟"
+
+تأكد من الرد باللغة العربية فقط.
+            """.strip()
+
+        # Get AI response using the enhanced prompt
+        ai_response = get_gpt_response(enhanced_prompt)
+
+        print("✅ AI response generated successfully")
+
+        return jsonify(
+            {
+                "success": True,
+                "prompt": user_prompt,
+                "response": ai_response,
+                "enhanced": ai_prompt_builder.is_checkpoint_query(user_prompt),
+            }
+        )
+
     except Exception as e:
+        print(f"❌ Error in ask_ai: {e}")
         return jsonify({"error": str(e)}), 500
 
 
@@ -478,7 +512,6 @@ def submit_feedback():
         return jsonify({"error": str(e)}), 500
 
 
-# ---------------- Server Function ----------------
 def start_api_server():
     print("\n🤝 Team Integration Ready!")
     port = int(os.getenv("PORT", 5000))

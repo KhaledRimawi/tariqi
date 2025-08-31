@@ -85,7 +85,69 @@ class MongoDBHandler:
             return False
         try:
             mongo_docs = []
+            filtered_out_count = 0
+
             for msg in messages:
+                # Filter out messages with no useful checkpoint information
+                checkpoint_name = msg.get("checkpoint_name", "").strip()
+                city_name = msg.get("city_name", "").strip()
+                status = msg.get("status", "").strip()
+                original_message = msg.get("original_message", "").strip()
+
+                # Skip messages where all checkpoint info is undefined/empty
+                if (
+                    checkpoint_name in ["غير محدد", "", None]
+                    and city_name in ["غير محدد", "", None]
+                    and status in ["غير محدد", "", None]
+                ):
+                    filtered_out_count += 1
+                    logger.info(f"🚫 Filtered out message with no checkpoint info: '{original_message[:50]}...'")
+                    continue
+
+                # Also filter out obvious non-checkpoint messages even if they have some parsed data
+                if original_message:
+                    original_lower = original_message.lower()
+
+                    # Common greeting patterns and non-useful messages
+                    useless_patterns = [
+                        "شكرا",
+                        "شكراً",
+                        "مرحبا",
+                        "أهلا",
+                        "السلام عليكم",
+                        "مساء الخير",
+                        "صباح الخير",
+                        "تحية",
+                        "بارك الله",
+                        "الله يعطيك",
+                        "يا جماعة",
+                        "ربنا يبارك",
+                        "🙏",
+                        "❤️",
+                    ]
+
+                    # Very short messages that are likely greetings
+                    short_useless = ["شكرا", "مرحبا", "اهلا", "تسلم", "يعطيك العافية"]
+
+                    # Check if message is just a greeting or very short useless text
+                    if (
+                        any(pattern in original_lower for pattern in useless_patterns) and len(original_message) < 30
+                    ) or original_message.lower().strip() in short_useless:
+                        filtered_out_count += 1
+                        logger.info(f"🚫 Filtered out greeting/useless message: '{original_message}'")
+                        continue
+
+                    # Filter out messages that are clearly not about checkpoints
+                    non_checkpoint_patterns = ["مخارج", "مداخل", "عام", "عمومي", "اعلان", "تنبيه عام"]
+
+                    if (
+                        any(pattern in original_lower for pattern in non_checkpoint_patterns)
+                        and len(original_message) < 50
+                    ):
+                        filtered_out_count += 1
+                        logger.info(f"🚫 Filtered out non-checkpoint message: '{original_message}'")
+                        continue
+
                 dt = _normalize_dt_utc(msg.get("message_date"))
                 if dt is None:
                     from datetime import datetime
@@ -95,17 +157,25 @@ class MongoDBHandler:
                 doc = {
                     "message_id": msg.get("message_id"),
                     "source_channel": msg.get("source_channel"),
-                    "original_message": msg.get("original_message"),
-                    "checkpoint_name": msg.get("checkpoint_name"),
-                    "city_name": msg.get("city_name"),
-                    "status": msg.get("status"),
-                    "direction": msg.get("direction"),
+                    "original_message": original_message,
+                    "checkpoint_name": checkpoint_name,
+                    "city_name": city_name,
+                    "status": status,
+                    "direction": msg.get("direction", "").strip(),
                     "message_date": dt,
                 }
                 mongo_docs.append(doc)
 
+            if not mongo_docs:
+                logger.warning(f"⚠️ All {len(messages)} messages were filtered out as useless")
+                return True  # Return True since filtering is intentional
+
             result = self.collection.insert_many(mongo_docs)
-            logger.info(f"✅ Successfully inserted {len(result.inserted_ids)} documents")
+            logger.info(f"✅ Successfully inserted {len(result.inserted_ids)} useful documents")
+            if filtered_out_count > 0:
+                logger.info(
+                    f"🧹 Filtered out {filtered_out_count} useless messages ({(filtered_out_count/(len(messages)))*100:.1f}%)"
+                )
             return True
         except Exception as e:
             logger.error(f"❌ Failed to save messages: {e}")

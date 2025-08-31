@@ -319,16 +319,22 @@ class MultiChannelTelegramCollector:
             status = "حادث"
         elif any(opened in message_lower for opened in ["فتح", "تم فتح"]):
             status = "فتح"
-        # Extract direction
+
+        # Extract direction with improved logic
         direction = "غير محدد"
 
-        # Check for direction indicators
+        # Check for explicit direction indicators first
         if any(enter in message_lower for enter in ["للداخل", "دخول", "داخل", "للدخول", "ل الداخل"]):
             direction = "دخول"
         elif any(exit in message_lower for exit in ["للخارج", "خروج", "خارج", "للخروج", "ل الخارج"]):
             direction = "خروج"
         elif any(both in message_lower for both in ["بالاتجاهين", "الاتجاهين", "الجهتين", "باتجاهين"]):
-            direction = "دخول وخروج"
+            direction = "الاتجاهين"
+        else:
+            # If no explicit direction is mentioned and we have a valid checkpoint and status,
+            # assume both directions (الاتجاهين) instead of "غير محدد"
+            if checkpoint_name != "غير محدد" and status != "غير محدد" and status != "استفسار":
+                direction = "الاتجاهين"
 
         # Clean the text (remove emojis and extra spaces)
         cleaned_text = re.sub(r"[🔴❌✅️🤍🤝⚠️✋]+", "", message_text)

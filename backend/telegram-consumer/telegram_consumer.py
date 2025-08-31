@@ -79,6 +79,7 @@ class EnhancedTelegramMonitor:
             "start_time": None,
             "total_runs": 0,
             "total_messages": 0,
+            "filtered_questions": 0,
             "errors": 0,
             "last_run": None,
             "last_error": None,
@@ -194,8 +195,54 @@ class EnhancedTelegramMonitor:
 
         logger.info(f"📊 Channel verification complete: {len(accessible_channels)}/{len(self.channels)} accessible")
 
+    def is_question_or_inquiry(self, message_text: str, status: str) -> bool:
+        """Check if message is a question or inquiry that should be filtered out"""
+        if not message_text:
+            return False
+
+        message_lower = message_text.lower().strip()
+
+        # Check if status is already identified as inquiry
+        if status == "استفسار":
+            return True
+
+        # Check for question patterns
+        question_patterns = [
+            "شو وضع",
+            "ايش وضع",
+            "كيف وضع",
+            "كيف الوضع",
+            "شو الوضع",
+            "ايش الوضع",
+            "وضع ايه",
+            "كيف",
+            "شو",
+            "ايش",
+            "هل",
+            "متى",
+            "أين",
+            "وين",
+            "مين",
+        ]
+
+        # Check for question mark
+        if "؟" in message_text:
+            return True
+
+        # Check for question patterns
+        for pattern in question_patterns:
+            if pattern in message_lower:
+                return True
+
+        # Check if message is too short and might be inquiry
+        words = message_lower.split()
+        if len(words) <= 3 and any(word in message_lower for word in ["شو", "كيف", "ايش", "وضع"]):
+            return True
+
+        return False
+
     async def get_new_messages_from_channel(self, channel: str) -> List[Dict[str, Any]]:
-        """Get new messages from a specific channel with enhanced logging"""
+        """Get new messages from a specific channel with enhanced logging and filtering"""
         try:
             logger.info(f"📡 Scanning {channel.split('/')[-1]}...")
 
@@ -210,16 +257,34 @@ class EnhancedTelegramMonitor:
             # Filter for new messages only
             new_messages = [msg for msg in messages if msg.get("message_id", 0) > last_id]
 
+            # Filter out questions and inquiries
+            filtered_messages = []
+            questions_filtered = 0
+
+            for msg in new_messages:
+                message_text = msg.get("original_message", "")
+                status = msg.get("status", "")
+
+                if self.is_question_or_inquiry(message_text, status):
+                    questions_filtered += 1
+                    logger.debug(f"🚫 Filtered question: {message_text[:30]}...")
+                    continue
+
+                filtered_messages.append(msg)
+
             if new_messages:
-                # Update last message ID
+                # Update last message ID based on all new messages (including filtered ones)
                 max_id = max(msg.get("message_id", 0) for msg in new_messages)
                 self.last_message_ids[channel] = max_id
 
                 logger.info(f"🆕 Found {len(new_messages)} new messages (last ID: {last_id} → {max_id})")
+                if questions_filtered > 0:
+                    logger.info(f"🚫 Filtered out {questions_filtered} questions/inquiries")
+                logger.info(f"✅ Keeping {len(filtered_messages)} valid messages")
             else:
                 logger.info(f"📭 No new messages (current last ID: {last_id})")
 
-            return new_messages
+            return filtered_messages
 
         except Exception as e:
             logger.error(f"❌ Error scanning {channel}: {e}")
@@ -238,12 +303,14 @@ class EnhancedTelegramMonitor:
 
         try:
             # Check each channel for new messages
+
             for i, channel in enumerate(self.channels, 1):
                 channel_name = channel.split("/")[-1]
                 logger.info(f"📡 [{i}/{len(self.channels)}] Checking {channel_name}...")
 
                 try:
                     new_messages = await self.get_new_messages_from_channel(channel)
+                    # Count filtered questions from the channel processing
                     all_new_messages.extend(new_messages)
                     channel_results[channel] = len(new_messages)
 
@@ -319,6 +386,7 @@ class EnhancedTelegramMonitor:
         logger.info(f"⏱️ Uptime: {hours}h {minutes}m")
         logger.info(f"🔄 Cycles completed: {self.stats['total_runs']}")
         logger.info(f"📨 Total messages collected: {self.stats['total_messages']:,}")
+        logger.info(f"🚫 Questions filtered: {self.stats.get('filtered_questions', 0):,}")
         logger.info(f"❌ Errors encountered: {self.stats['errors']}")
         logger.info(f"📡 Monitoring {len(self.channels)} channels")
         logger.info(f"⏰ Check interval: {self.CHECK_INTERVAL} seconds ({self.CHECK_INTERVAL//60} minutes)")
