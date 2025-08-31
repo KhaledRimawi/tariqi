@@ -32,6 +32,7 @@ class TelegramCheckpointCollector:
             "المربعة": {"city": "نابلس"},
             "بوابة بورين": {"city": "نابلس"},
             "صرة": {"city": "نابلس"},
+            "صره": {"city": "نابلس"},
             "عورتا": {"city": "نابلس"},
             "ال17 عصيرة": {"city": "نابلس"},
             "بيت فوريك": {"city": "نابلس"},
@@ -41,6 +42,8 @@ class TelegramCheckpointCollector:
             "عين سينا": {"city": "رام الله"},
             "بيت ايل": {"city": "رام الله"},
             "عطارة البلد": {"city": "رام الله"},
+            "عطاره": {"city": "رام الله"},
+            "عطارة": {"city": "رام الله"},
             "عطارة بيرزيت": {"city": "رام الله"},
             "الجلزون": {"city": "رام الله"},
             "بوابة النبي صالح": {"city": "رام الله"},
@@ -184,7 +187,7 @@ class TelegramCheckpointCollector:
                     break
 
         status = "غير محدد"
-        if any(w in t for w in ["شو وضع", "كيف", "ايش وضع", "كيف الوضع", "؟"]):
+        if any(w in t for w in ["ممكن", "شو وضع", "كيف", "ايش وضع", "كيف الوضع", "؟", "شو"]):
             status = "استفسار"
         elif any(w in t for w in ["مغلق", "مسكر", "اغلاق", "سكر", "مغلقة", "مسكرة", "❌"]):
             status = "إغلاق"
@@ -213,7 +216,7 @@ class TelegramCheckpointCollector:
         cleaned = re.sub(r"\s+", " ", cleaned).strip()
         return checkpoint, city, status, direction, cleaned
 
-    async def collect(self, channel: str, limit: int, enhanced: bool = True) -> List[Dict[str, Any]]:
+    async def collect(self, channel: str, limit: int) -> List[Dict[str, Any]]:
         ent = await self._entity(channel)
         if not ent:
             return []
@@ -221,33 +224,26 @@ class TelegramCheckpointCollector:
         async for msg in self.client.iter_messages(ent, limit=limit):
             text = msg.text or msg.message or ""
             ts = msg.date
-            if enhanced:
-                checkpoint, city, status, direction, _ = self.parse(text)
-                payload = {
-                    "message_id": msg.id,
-                    "source_channel": channel,
-                    "original_message": text or "[Media message]" if msg.media else text,
-                    "checkpoint_name": checkpoint,
-                    "city_name": city,
-                    "status": status,
-                    "direction": direction,
-                    "message_date": ts,
-                }
-            else:
-                payload = {
-                    "message_id": msg.id,
-                    "source_channel": channel,
-                    "message_text": text or "[Media message]" if msg.media else text,
-                    "message_date": ts,
-                    "message_type": "media" if msg.media else "text",
-                }
+            checkpoint, city, status, direction, _ = self.parse(text)
+            payload = {
+                "message_id": msg.id,
+                "source_channel": channel,
+                "original_message": text or "[Media message]" if msg.media else text,
+                "checkpoint_name": checkpoint,
+                "city_name": city,
+                "status": status,
+                "direction": direction,
+                "message_date": ts,
+            }
+            if payload["status"] == "غير محدد" or payload["status"] == "استفسار":
+                continue
             results.append(payload)
         return results
 
-    async def collect_many(self, channels: List[str], per_channel: int, enhanced: bool = True) -> List[Dict[str, Any]]:
+    async def collect_many(self, channels: List[str], per_channel: int) -> List[Dict[str, Any]]:
         all_msgs: List[Dict[str, Any]] = []
         for ch in channels:
-            all_msgs.extend(await self.collect(ch, per_channel, enhanced))
+            all_msgs.extend(await self.collect(ch, per_channel))
         return sorted(all_msgs, key=lambda x: x["message_date"], reverse=True)
 
     async def close(self) -> None:

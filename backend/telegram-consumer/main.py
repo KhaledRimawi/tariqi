@@ -36,7 +36,7 @@ async def collect_once():
     db.connect()
     try:
         log.info(f"Collecting from {len(channels)} channels, {per_channel} msg/channel")
-        msgs = await collector.collect_many(channels, per_channel, enhanced=True)
+        msgs = await collector.collect_many(channels, per_channel)
         saved = db.save_messages(msgs)
         log.info(f"Done. collected={len(msgs)} saved={saved}")
     finally:
