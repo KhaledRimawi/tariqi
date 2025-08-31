@@ -237,7 +237,7 @@ def get_closest_checkpoint():
         return jsonify({"error": str(e)}), 500
 
 
-# ---------------- User on the frontend (Map.js) & (Dwstination Search) pages ----------------
+# ---------------- User on the frontend (Map.js) & (Destination Search) pages ----------------
 @app.route("/api/checkpoints/query", methods=["GET"])
 def search_road_conditions():
     """
