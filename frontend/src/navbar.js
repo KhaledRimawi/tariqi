@@ -25,11 +25,6 @@ const Navbar = ({ notificationStatus }) => {
           </NavLink>
         </li>
         <li>
-          <NavLink to="/about" onClick={() => setIsOpen(false)} className={({ isActive }) => isActive ? "active-link" : ""}>
-            About
-          </NavLink>
-        </li>
-        <li>
           <NavLink to="/map" onClick={() => setIsOpen(false)} className={({ isActive }) => isActive ? "active-link" : ""}>
             Map
           </NavLink>
@@ -44,7 +39,11 @@ const Navbar = ({ notificationStatus }) => {
             Chat Bot
           </NavLink>
         </li>
-
+        <li>
+          <NavLink to="/about" onClick={() => setIsOpen(false)} className={({ isActive }) => isActive ? "active-link" : ""}>
+            About
+          </NavLink>
+        </li>
         <li className="auth-mobile">
           <AuthButton />
         </li>
