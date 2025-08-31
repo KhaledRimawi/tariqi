@@ -5,7 +5,7 @@ const VoiceChatbot = () => {
   const [messages, setMessages] = useState([
     { 
       id: 1, 
-      text: "Hi! I'm your voice-enabled chatbot. You can type or use the microphone to talk to me.", 
+      text: "مرحبا انا مساعدك لمعرفة احوال الطرق اسألني عن وضع الحواجز وسأجيبك", 
       sender: 'bot' 
     }
   ]);
@@ -25,7 +25,7 @@ const VoiceChatbot = () => {
       
       recognitionRef.current.continuous = true;
       recognitionRef.current.interimResults = true;
-      recognitionRef.current.lang = 'en-US';
+      recognitionRef.current.lang = 'ar-SA'; // switched to Arabic
 
       recognitionRef.current.onresult = (event) => {
         let transcript = '';
@@ -81,19 +81,19 @@ const VoiceChatbot = () => {
       setMessages(prev => [...prev, newMessage]);
 
       try {
-      const backendUrl = process.env.REACT_APP_BACKEND_URL;
+        const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
-      const res = await fetch(`${backendUrl}/api/ask-ai`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: inputText })
-      });
+        const res = await fetch(`${backendUrl}/api/ask-ai`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: inputText })
+        });
 
         const data = await res.json();
 
         const botResponse = {
           id: messages.length + 2,
-          text: data.response || "⚠️ Error: No response from AI",
+          text: data.response || "⚠️ خطأ: لم يتم الحصول على رد من الذكاء الاصطناعي",
           sender: 'bot'
         };
 
@@ -102,7 +102,8 @@ const VoiceChatbot = () => {
         // Optional: read response with speech synthesis.
         if ('speechSynthesis' in window) {
           const utterance = new SpeechSynthesisUtterance(botResponse.text);
-          utterance.rate = 0.8;
+          utterance.lang = "ar-SA"; // make speech Arabic
+          utterance.rate = 0.9;
           utterance.pitch = 1;
           speechSynthesis.speak(utterance);
         }
@@ -126,7 +127,8 @@ const VoiceChatbot = () => {
     if ('speechSynthesis' in window) {
       speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.8;
+      utterance.lang = "ar-SA";
+      utterance.rate = 0.9;
       utterance.pitch = 1;
       speechSynthesis.speak(utterance);
     }
@@ -135,12 +137,8 @@ const VoiceChatbot = () => {
   return (
     <div className="voice-chatbot-wrapper">
       <div className="voice-chatbot-container">
-        <div className="voice-chatbot-header">
-          <h2 className="voice-chatbot-title">Voice Chatbot</h2>
-          <p className="voice-chatbot-subtitle">
-            {isSupported ? 'Voice recognition enabled' : 'Voice not supported'}
-          </p>
-        </div>
+
+        {/* Removed header */}
 
         <div className="voice-chatbot-messages">
           {messages.map((message) => (
@@ -154,7 +152,7 @@ const VoiceChatbot = () => {
                   className="voice-chatbot-speak-btn"
                   onClick={() => speakMessage(message.text)}
                 >
-                  🔊 Speak
+                  🔊 استمع
                 </button>
               )}
             </div>
@@ -169,7 +167,7 @@ const VoiceChatbot = () => {
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder={isListening ? "Listening..." : "Type your message or use voice..."}
+                placeholder={isListening ? "جاري الاستماع..." : "اكتب رسالتك أو استخدم الصوت..."}
                 className={`voice-chatbot-text-input ${isListening ? 'disabled' : ''}`}
                 rows="1"
                 disabled={isListening}
@@ -178,7 +176,7 @@ const VoiceChatbot = () => {
                 <div className="voice-chatbot-listening-overlay">
                   <div className="voice-chatbot-listening-indicator">
                     <div className="voice-chatbot-pulse-dot"></div>
-                    Listening...
+                    جاري الاستماع...
                   </div>
                 </div>
               )}
@@ -204,7 +202,7 @@ const VoiceChatbot = () => {
           
           {!isSupported && (
             <p className="voice-chatbot-not-supported">
-              Voice recognition is not supported in this browser
+              المتصفح لا يدعم التعرف على الصوت
             </p>
           )}
         </div>
