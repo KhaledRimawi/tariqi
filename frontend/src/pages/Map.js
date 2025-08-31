@@ -25,7 +25,7 @@ const Map = () => {
     switch (status) {
       case 'مغلق': case 'مسكر': case 'مكهرب': return 'red';
       case 'مفتوح': case 'سالك': case 'بحري': return 'green';
-      case 'ازمة': case 'مزدحم': return 'orange';
+      case 'ازمة': case 'أزمة': case 'مزدحم': return 'orange';
       default: return 'gray';
     }
   };
@@ -68,7 +68,14 @@ const Map = () => {
 
   useEffect(() => {
     if (mapRef.current) return;
-    const map = L.map('map').setView([31.9, 35.2], 8);
+    const map = L.map('map', {
+  zoomControl: false 
+}).setView([31.9, 35.2], 8);
+
+L.control.zoom({
+  position: 'topleft'
+}).addTo(map);
+
     mapRef.current = map;
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors' }).addTo(map);
 
@@ -82,23 +89,73 @@ const Map = () => {
     return () => { if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; }};
   }, []);
 
-  useEffect(() => {
-    if (!mapRef.current) return;
-    checkpointMarkersRef.current.forEach(marker => mapRef.current.removeLayer(marker));
-    checkpointMarkersRef.current = [];
-    if (checkpoints.length === 0) return;
-    checkpoints.forEach(checkpoint => {
-      if (Number.isFinite(checkpoint.lat) && Number.isFinite(checkpoint.lng)) {
-        const checkpointColor = getStatusColor(checkpoint.status);
-        const checkpointSvgIcon = `<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="${checkpointColor}" stroke="#FFF" stroke-width="2"/><text x="12" y="16" font-family="Arial" font-size="10" fill="#FFF" text-anchor="middle">${checkpoint.checkpoint_name ? checkpoint.checkpoint_name.charAt(0) : '?'}</text></svg>`;
-        const checkpointIcon = L.divIcon({ className: '', html: checkpointSvgIcon, iconSize: [24, 24], iconAnchor: [12, 12], popupAnchor: [0, -12] });
-        const marker = L.marker([checkpoint.lat, checkpoint.lng], { icon: checkpointIcon })
-          .addTo(mapRef.current)
-          .bindPopup(`<b>${checkpoint.checkpoint_name || 'N/A'}</b><br>Status: ${checkpoint.status || 'N/A'}<br>Direction: ${checkpoint.direction || 'N/A'}<br>Time: ${formatTime(checkpoint.message_date)}`);
-        checkpointMarkersRef.current.push(marker);
-      }
-    });
-  }, [checkpoints]);
+useEffect(() => {
+  if (!mapRef.current) return;
+
+  checkpointMarkersRef.current.forEach(marker => mapRef.current.removeLayer(marker));
+  checkpointMarkersRef.current = [];
+
+  if (checkpoints.length === 0) return;
+
+  checkpoints.forEach(checkpoint => {
+    if (Number.isFinite(checkpoint.lat) && Number.isFinite(checkpoint.lng)) {
+      const checkpointColor = getStatusColor(checkpoint.status);
+
+      const checkpointSvgIcon = `
+        <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="10" fill="${checkpointColor}" stroke="#FFF" stroke-width="2"/>
+          <text x="12" y="16" font-family="Arial" font-size="10" fill="#FFF" text-anchor="middle">
+            ${checkpoint.checkpoint_name ? checkpoint.checkpoint_name.charAt(0) : '?'}
+          </text>
+        </svg>`;
+      const checkpointIcon = L.divIcon({
+        className: '',
+        html: checkpointSvgIcon,
+        iconSize: [24, 24],
+        iconAnchor: [12, 12],
+        popupAnchor: [0, -12]
+      });
+
+      const d = new Date(checkpoint.message_date);
+      const dateStr = d.toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'numeric',
+        year: 'numeric'
+      });
+      const timeStr = d.toLocaleTimeString('en-GB', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      }); 
+
+      const marker = L.marker([checkpoint.lat, checkpoint.lng], { icon: checkpointIcon })
+        .addTo(mapRef.current);
+
+      const hoverCard = `
+        <div class="checkpoint-hover-card" dir="rtl" style="text-align:right;">
+          <div class="cp-title"><b>${checkpoint.checkpoint_name || '—'}</b></div>
+          <div><b>الحالة:</b> ${checkpoint.status || '—'}</div>
+          <div><b>الاتجاه:</b> ${checkpoint.direction || '—'}</div>
+          <div><b>التاريخ:</b> ${dateStr}</div>
+          <div><b>الوقت:</b> ${timeStr}</div>
+        </div>
+      `;
+
+      marker.bindTooltip(hoverCard, {
+        className: 'checkpoint-tooltip-card',
+        direction: 'top',
+        offset: [0, -14],
+        sticky: true,
+        opacity: 1,
+        permanent: false  
+      });
+
+      checkpointMarkersRef.current.push(marker);
+    }
+  });
+}, [checkpoints]);
+
 
   // Updated effect for adding the user's location with a red professional icon
   useEffect(() => {

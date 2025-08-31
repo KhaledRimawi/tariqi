@@ -1,27 +1,87 @@
-/* src/Map.css */
 
-/* This container will ensure the map takes up the full screen */
 .map-page-wrapper {
     position: absolute;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    z-index: 0; /* Ensures the map is behind other content */
+    z-index: 0; 
 }
 
-/* The map itself will fill its container */
 #map {
     height: 100%;
     width: 100%;
 }
 
-/* Ensure the navbar stays fixed on top of everything */
 .navbar {
   position: fixed;
   width: 100%;
   top: 0;
   left: 0;
   z-index: 1000;
-  /* You don't need to add background-color here, as it's already transparent in Navbar.css */
+}
+
+.checkpoint-popup-wrap .leaflet-popup-content {
+  margin: 0; 
+}
+
+.checkpoint-popup {
+  font-family: system-ui, -apple-system, "Segoe UI", Arial, "Noto Sans", Tahoma, sans-serif;
+  padding: 10px 12px;
+  line-height: 1.6;
+  min-width: 220px;
+  border-inline-start: 6px solid var(--cp-color, #888);
+  border-radius: 10px;
+  direction: rtl; 
+  text-align: right;
+}
+
+.checkpoint-popup .cp-title {
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.checkpoint-popup .cp-row {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  font-size: 0.95rem;
+}
+
+.checkpoint-popup .cp-row span {
+  color: #666;
+  min-width: 70px;
+  white-space: nowrap;
+}
+
+.leaflet-control-zoom.leaflet-bar.leaflet-control {
+  margin-top: 80px !important; 
+}
+
+.checkpoint-tooltip-card {
+  background: #fff;
+  color: #222;
+  border: 2px solid rgba(0,0,0,0.2);
+  border-radius: 14px;
+  padding: 8px 10px;
+  box-shadow: 0 8px 10px rgba(0,0,0,0.25);
+  min-width: 180px;
+  max-width: 250px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.checkpoint-tooltip-card .leaflet-tooltip-content {
+  margin: 0;
+}
+
+.checkpoint-hover-card {
+  direction: rtl;
+  text-align: right;
+}
+
+.checkpoint-hover-card .cp-title {
+  font-weight: 700;
+  font-size: 16px;
+  margin-bottom: 8px;
 }
