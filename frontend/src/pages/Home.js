@@ -4,7 +4,7 @@ import PushNotificationSetup from './PushNotificationSetup';
 
 
 
-const Home = () => {
+const Home = ({ setNotificationStatus }) => {
     const [cards, setCards] = useState([]);
     const [loading, setLoading] = useState(true);
     const [city, setCity] = useState("");
@@ -153,7 +153,7 @@ const Home = () => {
                 )}
 
                 {/* Push notifications */}
-                <PushNotificationSetup />
+                <PushNotificationSetup setNotificationStatus={setNotificationStatus} />
             </div>
         </div>
     );

@@ -3,8 +3,9 @@ import { NavLink } from 'react-router-dom';
 import logo from './assets/LogoFinal.png';
 import './Navbar.css';
 import AuthButton from './pages/AuthButton';
+import NotificationTooltip from "./pages/NotificationTooltip";
 
-const Navbar = () => {
+const Navbar = ({ notificationStatus }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleMenu = () => setIsOpen(!isOpen);
@@ -13,8 +14,10 @@ const Navbar = () => {
     <nav className="navbar">
       <div className="navbar-logo">
         <img src={logo} alt="Logo" className="logo" />
-      </div>
-
+          {(notificationStatus === "denied" || notificationStatus === "unsupported") && (
+            <NotificationTooltip status={notificationStatus} />
+          )}
+        </div>
       <div className={`nav-links ${isOpen ? 'open' : ''}`}>
         <li>
           <NavLink to="/" onClick={() => setIsOpen(false)} className={({ isActive }) => isActive ? "active-link" : ""}>
