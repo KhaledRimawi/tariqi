@@ -12,8 +12,10 @@ const VoiceChatbot = () => {
   const [inputText, setInputText] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const recognitionRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const utterRef = useRef(null);
 
   useEffect(() => {
     // Check if speech recognition is supported
@@ -48,6 +50,9 @@ const VoiceChatbot = () => {
     return () => {
       if (recognitionRef.current) {
         recognitionRef.current.stop();
+      }
+      if ('speechSynthesis' in window) {
+        speechSynthesis.cancel();
       }
     };
   }, []);
@@ -98,15 +103,6 @@ const VoiceChatbot = () => {
         };
 
         setMessages(prev => [...prev, botResponse]);
-
-        // Optional: read response with speech synthesis.
-        if ('speechSynthesis' in window) {
-          const utterance = new SpeechSynthesisUtterance(botResponse.text);
-          utterance.lang = "ar-SA"; // make speech Arabic
-          utterance.rate = 0.9;
-          utterance.pitch = 1;
-          speechSynthesis.speak(utterance);
-        }
       } catch (err) {
         console.error("Error communicating with AI:", err);
       }
@@ -126,12 +122,28 @@ const VoiceChatbot = () => {
   const speakMessage = (text) => {
     if ('speechSynthesis' in window) {
       speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "ar-SA";
-      utterance.rate = 0.9;
-      utterance.pitch = 1;
-      speechSynthesis.speak(utterance);
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "ar-SA";
+      u.rate = 0.9;
+      u.pitch = 1;
+      u.onend = () => setIsSpeaking(false);
+      u.onerror = () => setIsSpeaking(false);
+      utterRef.current = u;
+      setIsSpeaking(true);
+      speechSynthesis.speak(u);
     }
+  };
+
+  const toggleNarration = () => {
+    if (!('speechSynthesis' in window)) return;
+    if (speechSynthesis.speaking || speechSynthesis.pending) {
+      speechSynthesis.cancel();
+      setIsSpeaking(false);
+      return;
+    }
+    const lastBot = [...messages].reverse().find(m => m.sender === 'bot');
+    if (!lastBot) return;
+    speakMessage(lastBot.text);
   };
 
   return (
@@ -147,14 +159,6 @@ const VoiceChatbot = () => {
               className={`voice-chatbot-message ${message.sender === 'user' ? 'user' : 'bot'}`}
             >
               <div className="voice-chatbot-message-content">{message.text}</div>
-              {message.sender === 'bot' && (
-                <button
-                  className="voice-chatbot-speak-btn"
-                  onClick={() => speakMessage(message.text)}
-                >
-                  🔊 استمع
-                </button>
-              )}
             </div>
           ))}
           <div ref={messagesEndRef} />
@@ -190,6 +194,15 @@ const VoiceChatbot = () => {
                 {isListening ? '🛑' : '🎤'}
               </button>
             )}
+
+            <button
+              onClick={toggleNarration}
+              className="voice-chatbot-btn voice-chatbot-mic-btn"
+              aria-pressed={isSpeaking}
+              title={isSpeaking ? 'إيقاف' : 'تشغيل'}
+            >
+              {isSpeaking ? '⏸️' : '🔊'}
+            </button>
             
             <button
               onClick={sendMessage}
