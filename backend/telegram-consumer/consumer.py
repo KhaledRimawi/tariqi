@@ -16,8 +16,6 @@ logging.basicConfig(
 )
 log = logging.getLogger("main")
 
-POLL_INTERVAL = int(os.getenv("TELEGRAM_CHECK_INTERVAL", "300"))  # default 5 min
-
 
 async def collect_once():
     api_id = int(os.getenv("TELEGRAM_API_ID", "0"))
@@ -45,13 +43,10 @@ async def collect_once():
 
 
 async def main():
-    while True:
-        try:
-            await collect_once()
-        except Exception as e:
-            log.error(f"cycle failed: {e}")
-        log.info(f"Sleeping {POLL_INTERVAL} seconds ({POLL_INTERVAL//60} min)...")
-        await asyncio.sleep(POLL_INTERVAL)
+    try:
+        await collect_once()
+    except Exception as e:
+        log.error(f"Run failed: {e}")
 
 
 if __name__ == "__main__":

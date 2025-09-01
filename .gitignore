@@ -15,8 +15,7 @@ logs/
 monitor.pid
 monitor_state.json
 
-# Environment variables
-
+.venv
 
 # Test files
 test_*.py
@@ -42,7 +41,7 @@ view_data.py
 **/node_modules
 
 # IDE files
-.vscode/
+
 .idea/
 *.swp
 *.swo

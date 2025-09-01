@@ -45,7 +45,7 @@ MANIFEST
 *.session
 *.session-journal
 telegram_session.*
-
+**/telegram_session.session
 # ===============================
 # Environment Variables
 # ===============================

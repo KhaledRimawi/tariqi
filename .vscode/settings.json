@@ -2,5 +2,12 @@
     "liveServer.settings.port": 5501,
     "python.analysis.extraPaths": [
         "./backend/common"
-    ]
+    ],
+    "azureFunctions.deploySubpath": "backend\\telegram-consumer",
+    "azureFunctions.scmDoBuildDuringDeployment": true,
+    "azureFunctions.pythonVenv": ".venv",
+    "azureFunctions.projectLanguage": "Python",
+    "azureFunctions.projectRuntime": "~4",
+    "debug.internalConsoleOptions": "neverOpen",
+    "azureFunctions.projectLanguageModel": 2
 }

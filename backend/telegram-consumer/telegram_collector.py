@@ -1,5 +1,7 @@
 import base64
+import os
 import re
+import shutil
 from typing import Any, Dict, List, Tuple
 
 from dotenv import load_dotenv
@@ -19,9 +21,22 @@ def rebuild_session_file(path: str = "telegram_session.session") -> str:
     return path
 
 
+def get_Telegram_Client(app_id: int, api_hash: str) -> TelegramClient:
+    if os.environ.get("RUN_SOURCE", "local-default") == "local-default":
+        return TelegramClient(rebuild_session_file(), app_id, api_hash)
+
+    # Production
+    read_only_session_path = os.path.join(os.path.dirname(__file__), "telegram_session.session")
+    writable_session_path = os.path.join("/tmp", "telegram_session.session")
+    if not os.path.exists(writable_session_path):
+        shutil.copyfile(read_only_session_path, writable_session_path)
+
+    return TelegramClient(writable_session_path, app_id, api_hash)
+
+
 class TelegramCheckpointCollector:
     def __init__(self, api_id: int, api_hash: str, phone_number: str) -> None:
-        self.client = TelegramClient(rebuild_session_file(), api_id, api_hash)
+        self.client = get_Telegram_Client(api_id, api_hash)
         self.phone_number = phone_number
 
         # checkpoint → city
