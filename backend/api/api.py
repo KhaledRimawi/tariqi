@@ -3,6 +3,7 @@ import random
 from datetime import datetime, timedelta, timezone
 
 from ai_prompt_builder import AIPromptBuilder
+from api_auth import token_required
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -443,6 +444,7 @@ def search_road_conditions():
 
 
 @app.route("/api/feedback", methods=["POST"])
+@token_required
 def submit_feedback():
     try:
         data = request.get_json()

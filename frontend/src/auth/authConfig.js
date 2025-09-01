@@ -41,6 +41,6 @@ export const msalConfig = {
 };
 
 export const loginRequest = {
-    scopes: ["User.Read"],
+    scopes: [process.env.REACT_APP_API_SCOPE],
 };
 

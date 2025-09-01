@@ -130,11 +130,21 @@ const FeedbackPage = () => {
       latitude: closestCheckpoint.latitude,
       longitude: closestCheckpoint.longitude,
     };
-
-    fetch(`${process.env.REACT_APP_BACKEND_URL}/api/feedback`, {
+  // Acquire access token first
+  instance.acquireTokenSilent({
+    ...loginRequest,
+    account: activeAccount,
+  })
+    .then((tokenResponse) => {
+      console.log("Sending access token:", tokenResponse.accessToken);
+      return fetch(`${process.env.REACT_APP_BACKEND_URL}/api/feedback`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${tokenResponse.accessToken}`, 
+        },
       body: JSON.stringify(payload),
+      });
     })
       .then((res) => res.json())
       .then((data) => {
