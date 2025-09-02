@@ -1,5 +1,6 @@
 import { useEffect  } from 'react';
 import getLocation from '../utils/getLocation';
+import { formatCheckpointTime } from '../utils/timeFormat'; 
 
 export default function PushNotificationSetup({ setNotificationStatus })  {
   useEffect(() => {
@@ -56,11 +57,21 @@ async function notifyNearbyCheckpoints() {
 
     if (data.count > 0) {
       for (const cp of data.checkpoints) {
+      
+      const { absolute, relative } = formatCheckpointTime(cp?.updatedAt?.$date);
+
+      const timeDisplay =
+        absolute === "غير محدث" && relative === "غير محدث"
+          ? "غير محدث"
+          : `${absolute} (${relative})`;
+
         const title = "🚧 نقطة تفتيش قريبة منك";
         const options = {
-          body: `🔘 المعبر: ${cp.checkpoint}\n📍 المدينة: ${cp.city}\n📡 الحالة: ${cp.status || "غير معروف"}\n🧭 الاتجاه: ${cp.direction || "غير معروف"}\n📏 البعد: ${cp.distance_km} كم\n🕒 ${new Date(cp.updatedAt).toLocaleString("ar-EG")}`,
-          requireInteraction: true
-        };
+              body: `🔘 المعبر: ${cp.checkpoint} 📍 المدينة: ${cp.city}
+                      📡 الحالة: ${cp.status || "غير معروف"} 🧭 الاتجاه: ${cp.direction || "غير معروف"}
+                      📏 البعد: ${cp.distance_km} كم 🕒${timeDisplay}`,
+              requireInteraction: true
+            };
         reg.showNotification(title, options);
       }
     } else {

@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import './Map.css';
 import * as topojson from 'topojson-client';
 import palestineTopoJson from '../assets/palestine.topo.json';
+import { formatCheckpointTime } from "../utils/timeFormat"; 
 
 // Fix for default marker icons not showing up in Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -117,18 +118,18 @@ useEffect(() => {
         popupAnchor: [0, -12]
       });
 
-      const d = new Date(checkpoint.message_date);
-      const dateStr = d.toLocaleDateString('en-GB', {
-        day: 'numeric',
-        month: 'numeric',
-        year: 'numeric'
-      });
-      const timeStr = d.toLocaleTimeString('en-GB', {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false
-      }); 
+const rawDate = checkpoint?.message_date?.$date || null;
+
+const { absolute, relative } = formatCheckpointTime(rawDate);
+
+let timeDisplay;
+if (!rawDate) {
+  timeDisplay = "غير محدث";
+} else if (!absolute && !relative) {
+  timeDisplay = "تاريخ غير صالح";
+} else {
+  timeDisplay = `${relative}`;
+}
 
       const marker = L.marker([checkpoint.lat, checkpoint.lng], { icon: checkpointIcon })
         .addTo(mapRef.current);
@@ -138,8 +139,7 @@ useEffect(() => {
           <div class="cp-title"><b>${checkpoint.checkpoint_name || '—'}</b></div>
           <div><b>الحالة:</b> ${checkpoint.status || '—'}</div>
           <div><b>الاتجاه:</b> ${checkpoint.direction || '—'}</div>
-          <div><b>التاريخ:</b> ${dateStr}</div>
-          <div><b>الوقت:</b> ${timeStr}</div>
+          <div><b>الوقت:</b> ${timeDisplay}</div>
         </div>
       `;
 

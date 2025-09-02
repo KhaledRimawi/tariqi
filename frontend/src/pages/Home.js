@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Search, MapPin, Clock, AlertCircle, CheckCircle, XCircle, Navigation } from "lucide-react";
 import "./Home.css";
 import PushNotificationSetup from "./PushNotificationSetup";
+import { formatCheckpointTime } from "../utils/timeFormat";
+
 
 // Helper: Get current geolocation
 const getLocation = () => {
@@ -130,12 +132,9 @@ const Home = ({ setNotificationStatus }) => {
                             };
                         }
 
-                        const rawTime = item.message_date;
+                            const rawTime = item.message_date?.$date || item.updatedAt?.$date || null;   /// why do we need updated at since when i removed it still time appeared but when removed item.messagedate the date gone 
 
-                        const statusBlock = formatStatus(
-                            { ...item, rawTime },
-                            false // Secondary data
-                        );
+                            const statusBlock = formatStatus({ ...item, rawTime });
 
                         if (
                             item.direction === "الداخل" || item.direction === "دخول" || item.direction === "الدخول" || item.direction === "داخل"
@@ -184,7 +183,7 @@ const Home = ({ setNotificationStatus }) => {
     }, [city, search, nearbyMode]);
 
     // Helper: Format status with colors
-    const formatStatus = (item, isPrimary) => {
+    const formatStatus = (item) => {
         let statusColor = { color: "#c8e6c9", textColor: "#2e7d32" };
 
         if (
@@ -201,31 +200,11 @@ const Home = ({ setNotificationStatus }) => {
             statusColor = { color: "#ffcdd2", textColor: "#c62828" };
         }
 
-        // Time formatting
-        let formattedTime = "";
-        if (item.rawTime) {
-            const d = new Date(item.rawTime);
-            if (!isNaN(d)) {
-                if (isPrimary) { 
-                    formattedTime = d.toLocaleTimeString("ar-EG", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        hour12: true,
-                        timeZone: "UTC",
-                    });
-                } else {
-                    formattedTime = d.toLocaleTimeString("ar-EG", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        hour12: true,
-                    });
-                }
-            }
-        }
-
+    const { absolute, relative } = formatCheckpointTime(item.rawTime);
         return {
             status: item.status,
-            time: formattedTime,
+            time: relative,      
+            absoluteTime: absolute,
             color: statusColor.color,
             textColor: statusColor.textColor,
         };

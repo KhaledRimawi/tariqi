@@ -343,11 +343,7 @@ def search_road_conditions():
             # Serialize message_date
             out = []
             for d in docs:
-                md = d.get("message_date")
-                if isinstance(md, datetime):
-                    d["message_date"] = md.isoformat()
                 out.append(d)
-
             return jsonify({"results": out, "count": len(out)}), 200
 
         mongo_filter = {}
@@ -427,11 +423,7 @@ def search_road_conditions():
                 "status": msg.get("status"),
                 "direction": msg.get("direction"),
                 "message": msg.get("message"),
-                "message_date": (
-                    msg.get("message_date").isoformat()
-                    if isinstance(msg.get("message_date"), datetime)
-                    else msg.get("message_date")
-                ),
+                "message_date": msg.get("message_date"),
             }
             if "lat" in msg:
                 item["lat"] = msg["lat"]
