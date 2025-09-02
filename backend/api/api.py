@@ -119,6 +119,10 @@ def ask_ai():
         # Get AI response using the enhanced prompt
         ai_response = get_gpt_response(enhanced_prompt)
 
+        # Post-process AI response to ensure proper formatting with direction
+        if ai_prompt_builder.is_checkpoint_query(user_prompt):
+            ai_response = ai_prompt_builder.post_process_response(ai_response, user_prompt)
+
         print("✅ AI response generated successfully")
 
         return jsonify(

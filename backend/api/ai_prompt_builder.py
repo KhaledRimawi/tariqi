@@ -220,17 +220,31 @@ class AIPromptBuilder:
 - الاتجاه: {direction}
 - آخر تحديث: {time_str}
 
-تعليمات الرد:
-1. قدم إجابة مختصرة ومفيدة عن حالة الحاجز
-2. اذكر الحالة والوقت بوضوح
-3. لا تذكر تفاصيل تقنية غير ضرورية
-4. استخدم اللغة العربية فقط
-5. كن مختصراً ومباشراً
+🚨 تعليمات إجبارية - اتبعها حرفياً:
 
-مثال على الرد المطلوب:
-"حاجز {checkpoint_name_from_db} {status} وذلك كان في {time_str}"
+أجب بهذا النص بالضبط حسب الاتجاه:
 
-تأكد من تقديم معلومات دقيقة ومفيدة للمستخدم.
+إذا كان الاتجاه "الاتجاهين" أو "اتجاهين" أو "كلا الاتجاهين":
+"حاجز {checkpoint_name_from_db} {status} بالاتجاهين وذلك كان الساعة TIMESTAMP:{time_str}"
+
+إذا كان الاتجاه "الدخول" أو "داخل" أو "الداخل" أو "دخول":
+"حاجز {checkpoint_name_from_db} {status} للدخول وذلك كان الساعة TIMESTAMP:{time_str}"
+
+إذا كان الاتجاه "الخروج" أو "خارج" أو "الخارج" أو "خروج":
+"حاجز {checkpoint_name_from_db} {status} للخروج وذلك كان الساعة TIMESTAMP:{time_str}"
+
+إذا كان الاتجاه غير محدد أو أي شيء آخر:
+"حاجز {checkpoint_name_from_db} {status} وذلك كان الساعة TIMESTAMP:{time_str}"
+
+مهم:
+-   حسب الوقت كتابة "صباحاً" أو "مساءً"
+- كتابة أي رقم مثل "١٠:١٥"
+- تغيير النص أعلاه
+
+✅ مطلوب بالضبط:
+TIMESTAMP:{time_str}
+
+🔥 استخدم النص المناسب حسب الاتجاه وضع TIMESTAMP:{time_str} بالضبط!
         """.strip()
 
         return enhanced_prompt
@@ -265,3 +279,56 @@ class AIPromptBuilder:
         is_greeting = any(pattern in query_lower for pattern in greeting_patterns)
 
         return (has_keywords or has_checkpoint) and not is_greeting
+
+    def post_process_response(self, ai_response: str, user_query: str) -> str:
+        """
+        Post-process AI response to handle time conversion and direction formatting
+        This is a fallback for responses that don't follow the TIMESTAMP pattern
+
+        Args:
+            ai_response (str): Original AI response
+            user_query (str): Original user query
+
+        Returns:
+            str: Processed response with proper time formatting and direction
+        """
+
+        # Extract checkpoint information
+        checkpoint_name, _ = self.extract_checkpoint_from_query(user_query)
+
+        if not checkpoint_name:
+            return ai_response
+
+        # Get latest checkpoint status
+        latest_status = self.get_latest_checkpoint_status(checkpoint_name)
+
+        if not latest_status:
+            return ai_response
+
+        status = latest_status.get("status", "غير محدد")
+        direction = latest_status.get("direction", "غير محدد")
+        message_date = latest_status.get("message_date")
+        checkpoint_name_from_db = latest_status.get("checkpoint_name", checkpoint_name)
+
+        # Format time for TIMESTAMP pattern
+        time_str = self.format_datetime_arabic(message_date) if message_date else "غير محدد"
+
+        # Check if response already has TIMESTAMP pattern
+        if "TIMESTAMP:" in ai_response:
+            return ai_response
+
+        # Build proper response based on direction
+        direction_lower = direction.lower()
+
+        if direction_lower in ["الاتجاهين", "اتجاهين", "كلا الاتجاهين"]:
+            processed_response = (
+                f"حاجز {checkpoint_name_from_db} {status} بالاتجاهين وذلك كان الساعة TIMESTAMP:{time_str}"
+            )
+        elif direction_lower in ["الدخول", "داخل", "الداخل", "دخول"]:
+            processed_response = f"حاجز {checkpoint_name_from_db} {status} للدخول وذلك كان الساعة TIMESTAMP:{time_str}"
+        elif direction_lower in ["الخروج", "خارج", "الخارج", "خروج"]:
+            processed_response = f"حاجز {checkpoint_name_from_db} {status} للخروج وذلك كان الساعة TIMESTAMP:{time_str}"
+        else:
+            processed_response = f"حاجز {checkpoint_name_from_db} {status} وذلك كان الساعة TIMESTAMP:{time_str}"
+
+        return processed_response
