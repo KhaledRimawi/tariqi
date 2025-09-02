@@ -13,11 +13,13 @@ const Navbar = ({ notificationStatus }) => {
   return (
     <nav className="navbar">
       <div className="navbar-logo">
-        <img src={logo} alt="Logo" className="logo" />
-          {(notificationStatus === "denied" || notificationStatus === "unsupported") && (
-            <NotificationTooltip status={notificationStatus} />
-          )}
-        </div>
+        <NavLink to="/">
+          <img src={logo} alt="Logo" className="logo" />
+        </NavLink>
+        {(notificationStatus === "denied" || notificationStatus === "unsupported") && (
+          <NotificationTooltip status={notificationStatus} />
+        )}
+      </div>
       <div className={`nav-links ${isOpen ? 'open' : ''}`}>
         <li>
           <NavLink to="/" onClick={() => setIsOpen(false)} className={({ isActive }) => isActive ? "active-link" : ""}>

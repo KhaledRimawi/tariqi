@@ -23,9 +23,10 @@ const Map = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'مغلق': case 'مسكر': case 'مكهرب': return 'red';
-      case 'مفتوح': case 'سالك': case 'بحري': return 'green';
-      case 'ازمة': case 'أزمة': case 'مزدحم': return 'orange';
+      case 'مغلق': case 'مسكر': case 'مكهرب':case 'اغلاق': case 'إغلاق':return 'red';
+      case 'مفتوح': case 'سالك': case 'بحري': case 'فاتح':return 'green';
+      case 'ازمة': case 'أزمة': case 'مزدحم': case 'ازدحام': case 'إزدحام':return 'orange';
+      case 'حاجز/تفتيش': case 'تفتيش':case 'حاجز':return 'yellow';
       default: return 'gray';
     }
   };

@@ -2,7 +2,7 @@
 .navbar {
   background: transparent;
   color: white;
-  padding: 1rem 2rem;
+  padding: 0 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -15,10 +15,15 @@
 }
 
 .navbar .logo {
-  height: 40px;
+  height: 70px; 
   width: auto;
+  cursor: pointer;
 }
 
+.navbar .navbar-logo {
+  display: flex;
+  align-items: center;
+}
 /* Nav Links */
 .navbar .nav-links {
   display: flex;
