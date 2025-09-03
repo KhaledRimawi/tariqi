@@ -330,15 +330,15 @@ const Home = ({ setNotificationStatus }) => {
                                                 borderColor: card.entry?.textColor || "#ddd"
                                             }}
                                         >
-                                            <div className="status-header">
+                                            <div className="status-header" dir="rtl">
                                                 <span className="status-label">الدخول</span>
                                                 {card.entry && getStatusIcon(card.entry.status)}
                                             </div>
-                                            <div className="status-value">
+                                            <div className="status-value" dir="rtl">
                                                 {card.entry ? card.entry.status : "—"}
                                             </div>
                                             {card.entry?.time && (
-                                                <div className="status-time">
+                                                <div className="status-time" dir="rtl">
                                                     <Clock className="time-icon" />
                                                     {card.entry.time}
                                                 </div>
@@ -354,15 +354,15 @@ const Home = ({ setNotificationStatus }) => {
                                                 borderColor: card.exit?.textColor || "#ddd"
                                             }}
                                         >
-                                            <div className="status-header">
+                                            <div className="status-header" dir="rtl">
                                                 <span className="status-label">الخروج</span>
                                                 {card.exit && getStatusIcon(card.exit.status)}
                                             </div>
-                                            <div className="status-value">
+                                            <div className="status-value" dir="rtl">
                                                 {card.exit ? card.exit.status : "—"}
                                             </div>
                                             {card.exit?.time && (
-                                                <div className="status-time">
+                                                <div className="status-time" dir="rtl">
                                                     <Clock className="time-icon" />
                                                     {card.exit.time}
                                                 </div>
