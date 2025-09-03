@@ -236,7 +236,11 @@ const Home = ({ setNotificationStatus }) => {
                         {/* Mode Toggle */}
                         <div className="mode-toggle">
                             <button
-                                onClick={() => setNearbyMode(true)}
+                                  onClick={() => {
+                                    setCity("");     
+                                    setSearch("");   
+                                    setNearbyMode(true);
+                                }}
                                 className={`mode-button ${nearbyMode ? 'active' : ''}`}
                             >
                                 <Navigation className="mode-icon" />
