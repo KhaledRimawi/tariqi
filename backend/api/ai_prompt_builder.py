@@ -225,16 +225,16 @@ class AIPromptBuilder:
 أجب بهذا النص بالضبط حسب الاتجاه:
 
 إذا كان الاتجاه "الاتجاهين" أو "اتجاهين" أو "كلا الاتجاهين":
-"حاجز {checkpoint_name_from_db} {status} بالاتجاهين وذلك كان الساعة TIMESTAMP:{time_str}"
+"حاجز {checkpoint_name_from_db} {status} بالاتجاهين وذلك كان الساعة :{time_str}"
 
 إذا كان الاتجاه "الدخول" أو "داخل" أو "الداخل" أو "دخول":
-"حاجز {checkpoint_name_from_db} {status} للدخول وذلك كان الساعة TIMESTAMP:{time_str}"
+"حاجز {checkpoint_name_from_db} {status} للدخول وذلك كان الساعة :{time_str}"
 
 إذا كان الاتجاه "الخروج" أو "خارج" أو "الخارج" أو "خروج":
-"حاجز {checkpoint_name_from_db} {status} للخروج وذلك كان الساعة TIMESTAMP:{time_str}"
+"حاجز {checkpoint_name_from_db} {status} للخروج وذلك كان الساعة :{time_str}"
 
 إذا كان الاتجاه غير محدد أو أي شيء آخر:
-"حاجز {checkpoint_name_from_db} {status} وذلك كان الساعة TIMESTAMP:{time_str}"
+"حاجز {checkpoint_name_from_db} {status} وذلك كان الساعة :{time_str}"
 
 مهم:
 -   حسب الوقت كتابة "صباحاً" أو "مساءً"
@@ -242,9 +242,9 @@ class AIPromptBuilder:
 - تغيير النص أعلاه
 
 ✅ مطلوب بالضبط:
-TIMESTAMP:{time_str}
+:{time_str}
 
-🔥 استخدم النص المناسب حسب الاتجاه وضع TIMESTAMP:{time_str} بالضبط!
+🔥 استخدم النص المناسب حسب الاتجاه وضع :{time_str} بالضبط!
         """.strip()
 
         return enhanced_prompt
@@ -321,14 +321,12 @@ TIMESTAMP:{time_str}
         direction_lower = direction.lower()
 
         if direction_lower in ["الاتجاهين", "اتجاهين", "كلا الاتجاهين"]:
-            processed_response = (
-                f"حاجز {checkpoint_name_from_db} {status} بالاتجاهين وذلك كان الساعة TIMESTAMP:{time_str}"
-            )
+            processed_response = f"حاجز {checkpoint_name_from_db} {status} بالاتجاهين وذلك كان الساعة :{time_str}"
         elif direction_lower in ["الدخول", "داخل", "الداخل", "دخول"]:
-            processed_response = f"حاجز {checkpoint_name_from_db} {status} للدخول وذلك كان الساعة TIMESTAMP:{time_str}"
+            processed_response = f"حاجز {checkpoint_name_from_db} {status} للدخول وذلك كان الساعة :{time_str}"
         elif direction_lower in ["الخروج", "خارج", "الخارج", "خروج"]:
-            processed_response = f"حاجز {checkpoint_name_from_db} {status} للخروج وذلك كان الساعة TIMESTAMP:{time_str}"
+            processed_response = f"حاجز {checkpoint_name_from_db} {status} للخروج وذلك كان الساعة :{time_str}"
         else:
-            processed_response = f"حاجز {checkpoint_name_from_db} {status} وذلك كان الساعة TIMESTAMP:{time_str}"
+            processed_response = f"حاجز {checkpoint_name_from_db} {status} وذلك كان الساعة :{time_str}"
 
         return processed_response
