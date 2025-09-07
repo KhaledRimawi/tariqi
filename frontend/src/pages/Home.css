@@ -10,9 +10,6 @@
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid #e5e7eb;
-  position: sticky;
-  top: 0;
-  z-index: 10;
 }
 
 .header-content {
@@ -224,11 +221,13 @@
   margin: 0;
 }
 
-/* Cards Grid */
+/* Cards Grid - Optimized for Two Cards */
 .cards-grid {
   display: grid;
   gap: 24px;
   grid-template-columns: 1fr;
+  max-width: 1000px;
+  margin: 0 auto;
 }
 
 /* Checkpoint Card */
@@ -386,10 +385,10 @@
   color: #dc2626;
 }
 
-/* Responsive Design */
+/* Responsive Design - Optimized for Two Cards */
 @media (min-width: 640px) {
   .main-title {
-    font-size: 2.25rem; /* Slightly larger on larger screens but still smaller than before */
+    font-size: 2.25rem;
   }
   
   .subtitle {
@@ -404,23 +403,37 @@
     flex-direction: row;
     align-items: stretch;
   }
+  
+  .cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
 }
 
 @media (min-width: 768px) {
   .cards-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
   }
 }
 
 @media (min-width: 1024px) {
   .cards-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 40px;
   }
 }
 
 @media (max-width: 640px) {
   .main-title {
-    font-size: 1.75rem; /* Smaller on mobile */
+    font-size: 1.75rem;
   }
   
   .subtitle {
@@ -428,12 +441,47 @@
   }
   
   .mode-toggle {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
   }
   
   .mode-button {
     justify-content: center;
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid #d1d5db;
+    color: #374151;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    min-width: 120px;
+  }
+  
+  .mode-button .mode-icon {
+    color: #374151;
+    fill: #374151;
+  }
+  
+  .mode-button:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+  }
+  
+  .mode-button:hover .mode-icon {
+    color: #6b7280;
+    fill: #6b7280;
+  }
+  
+  .mode-button.active {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+  }
+  
+  .mode-button.active .mode-icon {
+    color: white;
+    fill: white;
   }
   
   .search-row {
@@ -453,5 +501,9 @@
   .status-legend {
     flex-direction: column;
     align-items: center;
+  }
+  
+  .cards-grid {
+    grid-template-columns: 1fr;
   }
 }
