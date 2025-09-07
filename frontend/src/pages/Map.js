@@ -108,7 +108,11 @@ const Map = () => {
   useEffect(() => {
     if (!mapRef.current) return;
 
-    checkpointMarkersRef.current.forEach(marker => mapRef.current.removeLayer(marker));
+    checkpointMarkersRef.current.forEach(marker => {
+      if (mapRef.current) {
+        mapRef.current.removeLayer(marker);
+      }
+    });
     checkpointMarkersRef.current = [];
 
     if (checkpoints.length === 0) return;
@@ -162,7 +166,11 @@ const Map = () => {
         popupAnchor: [0, -12]
       });
 
-      const marker = L.marker([cp.lat, cp.lng], { icon: checkpointIcon }).addTo(mapRef.current);
+      const marker = L.marker([cp.lat, cp.lng], { icon: checkpointIcon });
+      
+      if (mapRef.current) {
+        marker.addTo(mapRef.current);
+      }
 
       const hoverCard = `
         <div class="checkpoint-hover-card" dir="rtl">
@@ -221,12 +229,15 @@ const Map = () => {
 
         if (userMarkerRef.current) {
           userMarkerRef.current.setLatLng(userLatLng);
-        } else {
-          userMarkerRef.current = L.marker(userLatLng, { icon: userIcon }).addTo(mapRef.current)
-            .bindPopup("Your Current Location").openPopup();
+        } else if (mapRef.current) {
+          userMarkerRef.current = L.marker(userLatLng, { icon: userIcon });
+          userMarkerRef.current.addTo(mapRef.current);
+          userMarkerRef.current.bindPopup("Your Current Location").openPopup();
         }
 
-        mapRef.current.setView(userLatLng, 12);
+        if (mapRef.current) {
+          mapRef.current.setView(userLatLng, 12);
+        }
       }, (error) => {
         console.error("Error getting user location:", error);
       });
