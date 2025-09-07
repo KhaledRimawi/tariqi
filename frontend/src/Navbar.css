@@ -12,17 +12,51 @@
   width: 100%;
   z-index: 1000;
   box-sizing: border-box;
+  transition: all 0.3s ease;
+}
+
+/* Dark mode navbar */
+.dark-mode .navbar {
+  background: rgba(17, 24, 39, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(75, 85, 99, 0.3);
 }
 
 .navbar .logo {
   height: 70px; 
   width: auto;
   cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+/* Dark mode logo improvements */
+.dark-mode .navbar .logo {
+  filter: brightness(1.3) contrast(1.2) saturate(1.1);
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.dark-mode .navbar .logo:hover {
+  filter: brightness(1.4) contrast(1.3) saturate(1.2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .navbar .navbar-logo {
   display: flex;
   align-items: center;
+}
+
+/* Navbar Controls */
+.navbar-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0; /* Prevent shrinking */
 }
 
 /* Nav Links */
@@ -53,12 +87,29 @@
   color: #3b82f6;
 }
 
+/* Dark mode nav links */
+.dark-mode .navbar .nav-links a {
+  color: #e5e7eb;
+}
+
+.dark-mode .navbar .nav-links a:hover {
+  background-color: rgba(55, 65, 81, 0.8);
+  color: #60a5fa;
+}
+
 .active-link {
   background-color: #3b82f6 !important;
   color: white !important;
   font-weight: bold;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+/* Dark mode active link */
+.dark-mode .active-link {
+  background-color: #60a5fa !important;
+  color: #111827 !important;
+  box-shadow: 0 2px 4px rgba(96, 165, 250, 0.4);
 }
 
 /* Menu */
@@ -76,12 +127,22 @@
   background-color: rgba(0, 0, 0, 0.05);
 }
 
+/* Dark mode hamburger */
+.dark-mode .hamburger:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
 .hamburger span {
   height: 3px;
   width: 25px;
   background: #374151;
   border-radius: 2px;
   transition: all 0.3s ease;
+}
+
+/* Dark mode hamburger spans */
+.dark-mode .hamburger span {
+  background: #e5e7eb;
 }
 
 /* Hamburger Animation */
@@ -122,6 +183,11 @@
   display: none;
 }
 
+/* Dark Mode Mobile */
+.dark-mode-mobile {
+  display: none;
+}
+
 /* Responsive */
 @media (max-width: 992px) {
   .feedback-box,
@@ -135,6 +201,15 @@
   .navbar {
     padding: 1rem 1.5rem;
     background: transparent;
+  }
+
+  /* Dark mode navbar mobile */
+  .dark-mode .navbar {
+    background: rgba(17, 24, 39, 0.95);
+  }
+
+  .navbar-controls {
+    display: none;
   }
 
   .navbar .nav-links {
@@ -153,6 +228,12 @@
     transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: -10px 0 25px rgba(0, 0, 0, 0.1);
     z-index: 9998;
+  }
+
+  /* Dark mode mobile menu */
+  .dark-mode .navbar .nav-links {
+    background: rgba(17, 24, 39, 0.98);
+    box-shadow: -10px 0 25px rgba(0, 0, 0, 0.3);
   }
 
   .navbar .nav-links.open {
@@ -176,10 +257,23 @@
     border: 1px solid rgba(229, 231, 235, 0.5);
   }
 
+  /* Dark mode mobile links */
+  .dark-mode .navbar .nav-links a {
+    background: rgba(55, 65, 81, 0.8);
+    border: 1px solid rgba(75, 85, 99, 0.5);
+    color: #e5e7eb;
+  }
+
   .navbar .nav-links a:hover {
     background: rgba(59, 130, 246, 0.1);
     border-color: rgba(59, 130, 246, 0.3);
     transform: translateY(-1px);
+  }
+
+  /* Dark mode mobile hover */
+  .dark-mode .navbar .nav-links a:hover {
+    background: rgba(96, 165, 250, 0.2);
+    border-color: rgba(96, 165, 250, 0.3);
   }
 
   .navbar .nav-links .active-link {
@@ -187,6 +281,14 @@
     color: white !important;
     border-color: #3b82f6;
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  }
+
+  /* Dark mode active link mobile */
+  .dark-mode .navbar .nav-links .active-link {
+    background: linear-gradient(135deg, #60a5fa 0%, #8b5cf6 100%) !important;
+    color: #111827 !important;
+    border-color: #60a5fa;
+    box-shadow: 0 4px 12px rgba(96, 165, 250, 0.4);
   }
 
   .hamburger {
@@ -198,6 +300,11 @@
     margin-top: 12px;
   }
 
+  .dark-mode-mobile {
+    display: block;
+    margin-top: 12px;
+  }
+
   .feedback-box,
   .search-box {
     width: 90%;
@@ -205,6 +312,19 @@
     margin: 10px auto;
     display: block;
     font-size: 1rem;
+  }
+
+  /* Dark mode inputs mobile */
+  .dark-mode .feedback-box,
+  .dark-mode .search-box {
+    background: rgba(55, 65, 81, 0.8);
+    border: 1px solid rgba(75, 85, 99, 0.5);
+    color: #e5e7eb;
+  }
+
+  .dark-mode .feedback-box::placeholder,
+  .dark-mode .search-box::placeholder {
+    color: #9ca3af;
   }
 }
 

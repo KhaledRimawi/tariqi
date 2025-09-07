@@ -1,0 +1,74 @@
+/* Dark Mode Toggle Button Styles */
+.dark-mode-toggle {
+  background: transparent;
+  border: 2px solid #374151;
+  border-radius: 12px;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  color: #374151;
+  margin-left: 1rem;
+}
+
+.dark-mode-toggle:hover {
+  background-color: #f3f4f6;
+  border-color: #3b82f6;
+  color: #3b82f6;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dark-mode-toggle:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-icon {
+  transition: all 0.3s ease;
+}
+
+.dark-mode-toggle:hover .toggle-icon {
+  transform: rotate(15deg);
+}
+
+/* Dark mode styles */
+.dark-mode .dark-mode-toggle {
+  border-color: #9ca3af;
+  color: #e5e7eb;
+}
+
+.dark-mode .dark-mode-toggle:hover {
+  background-color: #374151;
+  border-color: #60a5fa;
+  color: #60a5fa;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .dark-mode-toggle {
+    margin: 12px auto;
+    width: 90%;
+    max-width: 320px;
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .toggle-icon {
+    margin: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .dark-mode-toggle {
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+}

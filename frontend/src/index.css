@@ -8,7 +8,6 @@ body, html, #root {
   height: 100%;
   overflow-x: hidden; /* Prevents horizontal scrollbars */
 }
-/* src/index.css */
 
 /* Import Google Font */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
@@ -18,4 +17,86 @@ body {
   font-family: 'Poppins', sans-serif; /* Apply font globally */
   background-color: #000;
   color: #fff;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Dark Mode Styles */
+body.dark-mode {
+  background-color: #0f172a;
+  color: #f9fafb;
+}
+
+/* Light mode override for specific elements */
+body:not(.dark-mode) {
+  background-color: #ffffff;
+  color: #111827;
+}
+
+/* Dark mode component styles */
+.dark-mode * {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Dark mode cards and components */
+.dark-mode .card,
+.dark-mode .component {
+  background-color: #1f2937;
+  border-color: #374151;
+  color: #f9fafb;
+}
+
+.dark-mode .card:hover,
+.dark-mode .component:hover {
+  background-color: #374151;
+}
+
+/* Dark mode inputs */
+.dark-mode input,
+.dark-mode textarea,
+.dark-mode select {
+  background-color: #374151;
+  border-color: #4b5563;
+  color: #f9fafb;
+}
+
+.dark-mode input::placeholder,
+.dark-mode textarea::placeholder {
+  color: #9ca3af;
+}
+
+.dark-mode input:focus,
+.dark-mode textarea:focus,
+.dark-mode select:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+}
+
+/* Dark mode buttons */
+.dark-mode button {
+  background-color: #374151;
+  border-color: #4b5563;
+  color: #f9fafb;
+}
+
+.dark-mode button:hover {
+  background-color: #4b5563;
+  border-color: #6b7280;
+}
+
+/* Dark mode scrollbar */
+.dark-mode ::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dark-mode ::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+.dark-mode ::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border-radius: 4px;
+}
+
+.dark-mode ::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
 }

@@ -20,10 +20,36 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  background: none;
+  border: none;
+  border-radius: 0;
 }
 
 .location-message {
   line-height: 1.6;
+}
+
+/* Dark mode styles */
+.dark-mode .location-card {
+  background: #451a03;
+  color: #fbbf24;
+  border: 1px solid #92400e;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+.dark-mode .location-icon {
+  color: #fbbf24;
+  background: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.dark-mode .location-icon svg {
+  background: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
 }
 
 

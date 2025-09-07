@@ -3,6 +3,12 @@
   min-height: 100vh;
   background: linear-gradient(135deg, #f0f8ff 0%, #ffffff 50%, #f0f4ff 100%);
   font-family: 'Arial', sans-serif;
+  transition: background 0.3s ease;
+}
+
+/* Dark mode home container */
+.dark-mode .home-container {
+  background: linear-gradient(135deg, #0f172a 0%, #111827 50%, #1e293b 100%);
 }
 
 /* Header Section */
@@ -10,6 +16,13 @@
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid #e5e7eb;
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+/* Dark mode header */
+.dark-mode .header-section {
+  background: rgba(17, 24, 39, 0.8);
+  border-bottom: 1px solid #374151;
 }
 
 .header-content {
@@ -29,6 +42,12 @@
   color: #1f2937;
   margin-bottom: 12px; /* Increased margin */
   line-height: 1.2;
+  transition: color 0.3s ease;
+}
+
+/* Dark mode title */
+.dark-mode .main-title {
+  color: #f9fafb;
 }
 
 .subtitle {
@@ -38,6 +57,13 @@
   padding: 8px 16px;
   border-radius: 50px;
   display: inline-block;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Dark mode subtitle */
+.dark-mode .subtitle {
+  color: #e5e7eb;
+  background-color: #1e40af;
 }
 
 /* Controls Section */
@@ -71,11 +97,30 @@
   background: #f9fafb;
 }
 
+/* Dark mode buttons */
+.dark-mode .mode-button {
+  border: 1px solid #4b5563;
+  background: #374151;
+  color: #e5e7eb;
+}
+
+.dark-mode .mode-button:hover {
+  background: #4b5563;
+}
+
 .mode-button.active {
   background: #3b82f6;
   color: white;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   border-color: #3b82f6;
+}
+
+/* Dark mode active button */
+.dark-mode .mode-button.active {
+  background: #60a5fa;
+  color: #111827;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  border-color: #60a5fa;
 }
 
 .mode-icon {

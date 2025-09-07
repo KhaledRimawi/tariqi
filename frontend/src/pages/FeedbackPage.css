@@ -8,6 +8,7 @@
   padding: 0 15px;
   font-family: 'Tajawal', Arial, sans-serif;
   width: 100%;
+  min-height: 100vh;
   box-sizing: border-box;
 }
 
@@ -196,4 +197,76 @@
 .submit-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Dark mode styles */
+.dark-mode .feedback-page-container {
+  background-color: #0f172a;
+}
+
+.dark-mode .feedback-page-title {
+  color: #e2e8f0;
+}
+
+.dark-mode .feedback-page-subtitle {
+  color: #cbd5e1;
+  background-color: #1e293b;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.dark-mode .feedback-form {
+  background-color: #1e293b;
+  border: 1px solid #475569;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+
+.dark-mode .feedback-form h2 {
+  color: #e2e8f0;
+}
+
+.dark-mode .feedback-option {
+  background-color: #334155;
+  border: 1px solid #475569;
+  color: #e2e8f0;
+  box-shadow: 0 0 5px rgba(0,0,0,0.3);
+}
+
+.dark-mode .feedback-option.selected {
+  border: 2px solid #60a5fa;
+  box-shadow: 0 0 10px rgba(96,165,250,0.3);
+}
+
+.dark-mode .cancel-btn {
+  background-color: #475569;
+  color: #e2e8f0;
+}
+
+.dark-mode .cancel-btn:hover {
+  background-color: #64748b;
+}
+
+.dark-mode .location-info.loading {
+  background-color: #451a03;
+  color: #fbbf24;
+  border: 1px solid #92400e;
+}
+
+.dark-mode .location-info.error {
+  background-color: #450a0a;
+  color: #fca5a5;
+  border: 1px solid #991b1b;
+}
+
+.dark-mode .location-info.success {
+  background-color: #064e3b;
+  color: #86efac;
+  border: 1px solid #047857;
+}
+
+.dark-mode .retry-btn {
+  background-color: #3b82f6;
+}
+
+.dark-mode .retry-btn:hover {
+  background-color: #2563eb;
 }

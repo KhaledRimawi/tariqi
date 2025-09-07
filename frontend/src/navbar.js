@@ -4,6 +4,7 @@ import logo from './assets/LogoFinal.png';
 import './Navbar.css';
 import AuthButton from './pages/AuthButton';
 import NotificationTooltip from "./pages/NotificationTooltip";
+import DarkModeToggle from './components/DarkModeToggle';
 
 const Navbar = ({ notificationStatus }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -104,7 +105,15 @@ const Navbar = ({ notificationStatus }) => {
         <li className="auth-mobile">
           <AuthButton />
         </li>
+        <li className="dark-mode-mobile">
+          <DarkModeToggle />
+        </li>
       </ul>
+
+      <div className="navbar-controls">
+        <AuthButton />
+        <DarkModeToggle />
+      </div>
 
       <div className={`hamburger ${isOpen ? 'active' : ''}`} onClick={toggleMenu}>
         <span></span>

@@ -1,5 +1,6 @@
 import React , { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { DarkModeProvider } from './contexts/DarkModeContext';
 import Navbar from './navbar';
 import Home from './pages/Home';
 import About from './pages/About';
@@ -11,19 +12,21 @@ const App = () => {
   const [notificationStatus, setNotificationStatus] = useState(null);
 
   return (
-    <Router>
-      <Navbar notificationStatus={notificationStatus} />
-      <Routes>
-        <Route
-          path="/"
-          element={<Home setNotificationStatus={setNotificationStatus} />}
-        />
-        <Route path="/about" element={<About />} />
-        <Route path="/map" element={<MapPage />} />
-        <Route path="/voice-chat-bot" element={<VoiceChatBot />} />
-        <Route path="/feedback" element={<FeedbackPage />} /> {/* ✅ Feedback route */}
-      </Routes>
-    </Router>
+    <DarkModeProvider>
+      <Router>
+        <Navbar notificationStatus={notificationStatus} />
+        <Routes>
+          <Route
+            path="/"
+            element={<Home setNotificationStatus={setNotificationStatus} />}
+          />
+          <Route path="/about" element={<About />} />
+          <Route path="/map" element={<MapPage />} />
+          <Route path="/voice-chat-bot" element={<VoiceChatBot />} />
+          <Route path="/feedback" element={<FeedbackPage />} /> {/* ✅ Feedback route */}
+        </Routes>
+      </Router>
+    </DarkModeProvider>
   );
 };
 

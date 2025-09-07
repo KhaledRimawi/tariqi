@@ -4,23 +4,61 @@
   gap: 12px;
 }
 
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .auth-wrapper {
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+  
+  .user-badge {
+    width: 100%;
+    justify-content: center;
+    padding: 10px 16px;
+  }
+  
+  .auth-button {
+    width: 100%;
+    padding: 12px 20px;
+    text-align: center;
+  }
+}
+
 /* Transparent username badge */
 .user-badge {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(249, 250, 251, 0.95);
   padding: 6px 14px;
   border-radius: 30px;
   font-weight: 500;
   font-size: 14px;
-  color: white;
+  color: #1f2937;
   backdrop-filter: blur(6px);
-  transition: background 0.3s ease, transform 0.2s ease;
+  transition: background 0.3s ease, transform 0.2s ease, color 0.3s ease;
+  border: 1px solid rgba(209, 213, 219, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
+
 .user-badge:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(243, 244, 246, 0.98);
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Dark mode user badge */
+.dark-mode .user-badge {
+  background: rgba(55, 65, 81, 0.9);
+  color: #e5e7eb;
+  border: 1px solid rgba(75, 85, 99, 0.5);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.dark-mode .user-badge:hover {
+  background: rgba(75, 85, 99, 0.9);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 /* Avatar inside transparent badge */
@@ -28,40 +66,65 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #0078d4;
+  background: #3b82f6;
   color: white;
   width: 28px;
   height: 28px;
   border-radius: 50%;
   font-weight: bold;
   font-size: 14px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode avatar */
+.dark-mode .avatar {
+  background: #60a5fa;
+  color: #1f2937;
 }
 
 /* Greeting text */
 .username {
-  color: white;
+  color: #1f2937;
+  transition: color 0.3s ease;
+  font-weight: 500;
+}
+
+/* Dark mode username */
+.dark-mode .username {
+  color: #f3f4f6;
 }
 
 /* Auth button (keeps modern pill style) */
 .auth-button {
-  padding: 8px 20px;
+  padding: 10px 24px;
   border: none;
   border-radius: 30px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.2);
 }
 
 .auth-button.login {
-  background: linear-gradient(135deg, #0078d4, #005a9e);
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
   color: white;
 }
 
 .auth-button.logout {
-  background: #e74c3c;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
   color: white;
+}
+
+/* Dark mode auth button */
+.dark-mode .auth-button.login {
+  background: linear-gradient(135deg, #60a5fa, #3b82f6);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+}
+
+.dark-mode .auth-button.logout {
+  background: linear-gradient(135deg, #f87171, #ef4444);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.4);
 }
 
 .auth-button:hover {

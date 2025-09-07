@@ -9,6 +9,7 @@
   justify-content: center;
   padding: 20px;
   margin-top: 30px;
+  width: 100vw;
 }
 
 .voice-chatbot-container {
@@ -314,4 +315,108 @@
   outline: 1px solid #374151;
   outline-offset: 1px;
   border-radius: 4px;
+}
+
+/* Dark mode styles */
+.dark-mode .voice-chatbot-container {
+  background: #1e293b;
+  border: 1px solid #475569;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.dark-mode .voice-chatbot-header {
+  background: #0f172a;
+  color: #e2e8f0;
+  border-bottom: 1px solid #475569;
+}
+
+.dark-mode .voice-chatbot-title {
+  color: #e2e8f0;
+}
+
+.dark-mode .voice-chatbot-subtitle {
+  color: #cbd5e1;
+  background-color: #334155;
+}
+
+.dark-mode .voice-chatbot-messages {
+  background: #334155;
+}
+
+.dark-mode .voice-chatbot-message.user {
+  background: #1e40af;
+  color: #e2e8f0;
+}
+
+.dark-mode .voice-chatbot-message.bot {
+  background: #475569;
+  color: #e2e8f0;
+  border: 1px solid #64748b;
+}
+
+.dark-mode .voice-chatbot-speak-btn {
+  color: #94a3b8;
+}
+
+.dark-mode .voice-chatbot-speak-btn:hover {
+  color: #e2e8f0;
+  background-color: rgba(148,163,184,0.1);
+}
+
+.dark-mode .voice-chatbot-input-area {
+  background: #1e293b;
+  border-top: 1px solid #475569;
+}
+
+.dark-mode .voice-chatbot-text-input {
+  background: #334155;
+  border: 1px solid #64748b;
+  color: #e2e8f0;
+}
+
+.dark-mode .voice-chatbot-text-input:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 4px rgba(96,165,250,0.3);
+}
+
+.dark-mode .voice-chatbot-text-input.disabled {
+  background: #475569;
+  color: #64748b;
+}
+
+.dark-mode .voice-chatbot-text-input::placeholder {
+  color: #94a3b8;
+}
+
+.dark-mode .voice-chatbot-mic-btn {
+  background: #475569;
+  color: #e2e8f0;
+}
+
+.dark-mode .voice-chatbot-mic-btn:hover:not(:disabled) {
+  background: #64748b;
+}
+
+.dark-mode .voice-chatbot-send-btn {
+  background: #3b82f6;
+}
+
+.dark-mode .voice-chatbot-send-btn:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.dark-mode .voice-chatbot-not-supported {
+  color: #94a3b8;
+}
+
+.dark-mode .voice-chatbot-messages::-webkit-scrollbar-track {
+  background: #475569;
+}
+
+.dark-mode .voice-chatbot-messages::-webkit-scrollbar-thumb {
+  background: #64748b;
+}
+
+.dark-mode .voice-chatbot-messages::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }

@@ -1,6 +1,6 @@
 import React from "react";
 import "./LocationTooltip.css";
-import { AlertCircle } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 
 const LocationTooltip = ({ status }) => {
     const message =
@@ -11,7 +11,7 @@ const LocationTooltip = ({ status }) => {
     return (
         <div className="location-card">
             <div className="location-icon">
-                <AlertCircle size={28} />
+                <AlertTriangle size={28} />
             </div>
             <div className="location-message">
                 {message}
