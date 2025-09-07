@@ -3,13 +3,13 @@ import { Search, MapPin, Clock, AlertCircle, CheckCircle, XCircle, Navigation } 
 import "./Home.css";
 import PushNotificationSetup from "./PushNotificationSetup";
 import { formatCheckpointTime } from "../utils/timeFormat";
-
+import LocationTooltip from "./LocationTooltip"; 
 
 // Helper: Get current geolocation
 const getLocation = () => {
     return new Promise((resolve, reject) => {
         if (!navigator.geolocation) {
-            reject(new Error("Geolocation not supported"));
+            reject(new Error("unsupported"));
         }
         navigator.geolocation.getCurrentPosition(
             (pos) => {
@@ -18,7 +18,13 @@ const getLocation = () => {
                     longitude: pos.coords.longitude,
                 });
             },
-            (err) => reject(err),
+            (err) => {
+                if (err.code === 1) {
+                    reject(new Error("denied")); // User refused
+                } else {
+                    reject(new Error("error"));
+                }
+            },
             { enableHighAccuracy: true }
         );
     });
@@ -30,6 +36,7 @@ const Home = ({ setNotificationStatus }) => {
     const [city, setCity] = useState("");
     const [search, setSearch] = useState("");
     const [nearbyMode, setNearbyMode] = useState(true);
+    const [locationStatus, setLocationStatus] = useState(null);
 
     const cities = [
         "نابلس", "سلفيت", "رام الله", "بيت لحم", "الخليل", 
@@ -40,7 +47,7 @@ const Home = ({ setNotificationStatus }) => {
         const fetchData = async () => {
             try {
                 setLoading(true);
-                
+
                 const backendUrl = process.env.REACT_APP_BACKEND_URL;
                 let url = "";
 
@@ -48,6 +55,8 @@ const Home = ({ setNotificationStatus }) => {
                 if (nearbyMode && !city && !search) {
                     try {
                         const position = await getLocation();
+                        setLocationStatus("granted"); // User agreed
+
                         const userLat = position.latitude;
                         const userLng = position.longitude;
 
@@ -96,6 +105,16 @@ const Home = ({ setNotificationStatus }) => {
                         }
                     } catch (geoErr) {
                         console.warn("Geolocation error:", geoErr.message);
+
+                        if (geoErr.message === "denied") {
+                            setLocationStatus("denied");
+                        } else if (geoErr.message === "unsupported") {
+                            setLocationStatus("unsupported");
+                        } else {
+                            setLocationStatus("error");
+                        }
+                        setCards([]); 
+                        return;
                     }
                 }
 
@@ -132,9 +151,8 @@ const Home = ({ setNotificationStatus }) => {
                             };
                         }
 
-                            const rawTime = item.message_date?.$date || item.updatedAt?.$date || null;   /// why do we need updated at since when i removed it still time appeared but when removed item.messagedate the date gone 
-
-                            const statusBlock = formatStatus({ ...item, rawTime });
+                        const rawTime = item.message_date?.$date || item.updatedAt?.$date || null;
+                        const statusBlock = formatStatus({ ...item, rawTime });
 
                         if (
                             item.direction === "الداخل" || item.direction === "دخول" || item.direction === "الدخول" || item.direction === "داخل"
@@ -182,6 +200,13 @@ const Home = ({ setNotificationStatus }) => {
         fetchData();
     }, [city, search, nearbyMode]);
 
+    // If the site is rejected or unsupported --> Force the mode to switch to advanced search
+    useEffect(() => {
+        if (["denied", "unsupported", "error"].includes(locationStatus)) {
+            setNearbyMode(false); 
+        }
+    }, [locationStatus]);
+
     // Helper: Format status with colors
     const formatStatus = (item) => {
         let statusColor = { color: "#c8e6c9", textColor: "#2e7d32" };
@@ -200,10 +225,10 @@ const Home = ({ setNotificationStatus }) => {
             statusColor = { color: "#ffcdd2", textColor: "#c62828" };
         }
 
-    const { absolute, relative } = formatCheckpointTime(item.rawTime);
+        const { absolute, relative } = formatCheckpointTime(item.rawTime);
         return {
             status: item.status,
-            time: relative,      
+            time: relative,
             absoluteTime: absolute,
             color: statusColor.color,
             textColor: statusColor.textColor,
@@ -221,6 +246,9 @@ const Home = ({ setNotificationStatus }) => {
         return <Clock className="status-icon" />;
     };
 
+    const isLocationBlocked =
+        nearbyMode && ["denied", "unsupported", "error"].includes(locationStatus);
+
     return (
         <div className="home-container">
             {/* Header Section */}
@@ -236,7 +264,7 @@ const Home = ({ setNotificationStatus }) => {
                         {/* Mode Toggle */}
                         <div className="mode-toggle">
                             <button
-                                  onClick={() => {
+                                onClick={() => {
                                     setCity("");     
                                     setSearch("");   
                                     setNearbyMode(true);
@@ -299,6 +327,8 @@ const Home = ({ setNotificationStatus }) => {
                         <div className="loading-spinner"></div>
                         <p className="loading-text">⏳ جاري تحميل البيانات...</p>
                     </div>
+                ) : isLocationBlocked ? (
+                    <LocationTooltip status={locationStatus} />
                 ) : cards.length === 0 ? (
                     <div className="empty-section">
                         <div className="empty-card">

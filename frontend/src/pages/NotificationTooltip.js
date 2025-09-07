@@ -5,8 +5,8 @@ const NotificationTooltip = ({ status }) => {
   // Determine the message based on notification status
   const message =
     status === "denied"
-      ? "Notifications are off. Turn them on to get live checkpoint updates."
-      : "Your browser does not support notifications.";
+      ? "الإشعارات مغلقة. فعّلها للحصول على تحديثات الحواجز مباشرة"
+      : "متصفحك لا يدعم الإشعارات";
 
   return (
     <div className="tooltip-container">
