@@ -5,6 +5,7 @@ This class intelligently builds prompts with MongoDB context for AI responses
 """
 
 import os
+from datetime import datetime, timezone
 from typing import Dict, Optional, Tuple
 
 from dotenv import load_dotenv
@@ -121,6 +122,76 @@ class AIPromptBuilder:
             print(f"Error fetching checkpoint status: {e}")
             return None
 
+    def format_time_ago_arabic(self, dt) -> str:
+        """
+        Format datetime as relative time in Arabic
+        Equivalent to timeFormat.js formatTimeAgo function
+        Args:
+            dt: Datetime object or string
+        Returns:
+            str: Formatted Arabic relative time string
+        """
+        if not dt:
+            return "غير محدد"
+
+        try:
+            # Parse datetime string if needed
+            if isinstance(dt, str):
+                try:
+                    dt = datetime.fromisoformat(dt.replace("Z", "+00:00"))
+                except (ValueError, AttributeError):
+                    return "غير محدد"
+
+            # Get current time in UTC
+            now = datetime.now(timezone.utc)
+            # Ensure dt is timezone aware
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+
+            # Calculate time difference (similar to JavaScript logic)
+            diff = now - dt
+            diff_seconds = int(diff.total_seconds())
+
+            if diff_seconds < 0:
+                return "الآن"
+
+            # Arabic relative time formatting (matching timeFormat.js behavior)
+            if diff_seconds < 60:
+                return "منذ لحظات"  # More natural than showing exact seconds
+            diff_minutes = diff_seconds // 60
+            if diff_minutes < 60:
+                if diff_minutes == 1:
+                    return "منذ دقيقة"
+                elif diff_minutes == 2:
+                    return "منذ دقيقتين"
+                elif diff_minutes <= 10:
+                    return f"منذ {diff_minutes} دقائق"
+                else:
+                    return f"منذ {diff_minutes} دقيقة"
+            diff_hours = diff_minutes // 60
+            if diff_hours < 24:
+                if diff_hours == 1:
+                    return "منذ ساعة"
+                elif diff_hours == 2:
+                    return "منذ ساعتين"
+                elif diff_hours <= 10:
+                    return f"منذ {diff_hours} ساعات"
+                else:
+                    return f"منذ {diff_hours} ساعة"
+            diff_days = diff_hours // 24
+            if diff_days == 1:
+                return "منذ يوم"
+            elif diff_days == 2:
+                return "منذ يومين"
+            elif diff_days <= 10:
+                return f"منذ {diff_days} أيام"
+            else:
+                return f"منذ {diff_days} يوم"
+
+        except Exception as e:
+            print(f"Error formatting relative time: {e}")
+            return "غير محدد"
+
     def format_datetime_arabic(self, dt) -> str:
         """
         Format datetime in Arabic-friendly format
@@ -205,8 +276,9 @@ class AIPromptBuilder:
         direction = latest_status.get("direction", "غير محدد")
         message_date = latest_status.get("message_date")
         checkpoint_name_from_db = latest_status.get("checkpoint_name", checkpoint_name)
-        # Format time
-        time_str = self.format_datetime_arabic(message_date) if message_date else "غير محدد"
+
+        # Format time using relative time (منذ X دقيقة/ساعة)
+        time_str = self.format_time_ago_arabic(message_date) if message_date else "غير محدد"
 
         # Build enhanced prompt with context
         enhanced_prompt = f"""
@@ -220,31 +292,28 @@ class AIPromptBuilder:
 - الاتجاه: {direction}
 - آخر تحديث: {time_str}
 
-🚨 تعليمات إجبارية - اتبعها حرفياً:
+        🚨 تعليمات إجبارية - اتبعها حرفياً:
 
 أجب بهذا النص بالضبط حسب الاتجاه:
 
 إذا كان الاتجاه "الاتجاهين" أو "اتجاهين" أو "كلا الاتجاهين":
-"حاجز {checkpoint_name_from_db} {status} بالاتجاهين وذلك كان الساعة :{time_str}"
+"حاجز {checkpoint_name_from_db} {status} بالاتجاهين {time_str}"
 
 إذا كان الاتجاه "الدخول" أو "داخل" أو "الداخل" أو "دخول":
-"حاجز {checkpoint_name_from_db} {status} للدخول وذلك كان الساعة :{time_str}"
+"حاجز {checkpoint_name_from_db} {status} للدخول {time_str}"
 
 إذا كان الاتجاه "الخروج" أو "خارج" أو "الخارج" أو "خروج":
-"حاجز {checkpoint_name_from_db} {status} للخروج وذلك كان الساعة :{time_str}"
+"حاجز {checkpoint_name_from_db} {status} للخروج {time_str}"
 
 إذا كان الاتجاه غير محدد أو أي شيء آخر:
-"حاجز {checkpoint_name_from_db} {status} وذلك كان الساعة :{time_str}"
-
-مهم:
--   حسب الوقت كتابة "صباحاً" أو "مساءً"
-- كتابة أي رقم مثل "١٠:١٥"
-- تغيير النص أعلاه
+"حاجز {checkpoint_name_from_db} {status} {time_str}"مهم:
+- استخدم "{time_str}" بالضبط كما هو
+- لا تغيير النص أعلاه
 
 ✅ مطلوب بالضبط:
-:{time_str}
+{time_str}
 
-🔥 استخدم النص المناسب حسب الاتجاه وضع :{time_str} بالضبط!
+🔥 استخدم النص المناسب حسب الاتجاه وضع {time_str} بالضبط!
         """.strip()
 
         return enhanced_prompt
@@ -310,23 +379,23 @@ class AIPromptBuilder:
         message_date = latest_status.get("message_date")
         checkpoint_name_from_db = latest_status.get("checkpoint_name", checkpoint_name)
 
-        # Format time for TIMESTAMP pattern
-        time_str = self.format_datetime_arabic(message_date) if message_date else "غير محدد"
+        # Format time for relative time pattern
+        time_str = self.format_time_ago_arabic(message_date) if message_date else "غير محدد"
 
-        # Check if response already has TIMESTAMP pattern
-        if "TIMESTAMP:" in ai_response:
+        # Check if response already has relative time pattern
+        if "منذ" in ai_response:
             return ai_response
 
         # Build proper response based on direction
         direction_lower = direction.lower()
 
         if direction_lower in ["الاتجاهين", "اتجاهين", "كلا الاتجاهين"]:
-            processed_response = f"حاجز {checkpoint_name_from_db} {status} بالاتجاهين وذلك كان الساعة :{time_str}"
+            processed_response = f"حاجز {checkpoint_name_from_db} {status} بالاتجاهين {time_str}"
         elif direction_lower in ["الدخول", "داخل", "الداخل", "دخول"]:
-            processed_response = f"حاجز {checkpoint_name_from_db} {status} للدخول وذلك كان الساعة :{time_str}"
+            processed_response = f"حاجز {checkpoint_name_from_db} {status} للدخول {time_str}"
         elif direction_lower in ["الخروج", "خارج", "الخارج", "خروج"]:
-            processed_response = f"حاجز {checkpoint_name_from_db} {status} للخروج وذلك كان الساعة :{time_str}"
+            processed_response = f"حاجز {checkpoint_name_from_db} {status} للخروج {time_str}"
         else:
-            processed_response = f"حاجز {checkpoint_name_from_db} {status} وذلك كان الساعة :{time_str}"
+            processed_response = f"حاجز {checkpoint_name_from_db} {status} {time_str}"
 
         return processed_response
