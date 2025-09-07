@@ -85,3 +85,22 @@
   font-size: 16px;
   margin-bottom: 8px;
 }
+
+/* Enter,Exit Blocks */
+.checkpoint-hover-card .cp-block {
+  background: #f9f9f9;
+  padding: 6px 8px;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.checkpoint-hover-card .cp-entry {
+  border-right: 4px solid green;
+}
+
+.checkpoint-hover-card .cp-exit {
+  border-right: 4px solid red;
+}
+
