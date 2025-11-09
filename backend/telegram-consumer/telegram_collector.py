@@ -104,7 +104,7 @@ class TelegramCheckpointCollector:
             "جناتا": {"city": "بيت لحم"},
             "الخضر": {"city": "بيت لحم"},
             "العبيدية": {"city": "بيت لحم"},
-            "جاحز 300": {"city": "بيت لحم"},
+            "حاجز 300": {"city": "بيت لحم"},
             "المناشير": {"city": "بيت لحم"},
             "ام سلمونة": {"city": "بيت لحم"},
             "نصار": {"city": "بيت لحم"},
@@ -169,8 +169,7 @@ class TelegramCheckpointCollector:
     async def authenticate(self) -> None:
         await self.client.connect()
         if await self.client.is_user_authorized():
-            return
-        await self.client.send_code_request(self.phone_number)
+            return await self.client.send_code_request(self.phone_number)
         code = input("Enter Telegram code: ")
         try:
             await self.client.sign_in(self.phone_number, code)

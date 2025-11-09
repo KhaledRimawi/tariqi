@@ -68,6 +68,7 @@ class AIPromptBuilder:
             "سالك",
             "الحال",
             "الوضع",
+            "شو",  # Added "شو" as a question word to be removed
         ]
 
         # Common greeting words that should be filtered out
@@ -241,15 +242,21 @@ class AIPromptBuilder:
         checkpoint_name, _ = self.extract_checkpoint_from_query(user_query)
 
         if not checkpoint_name:
-            # General response for unrecognized checkpoints
+            # If the user query is not asking about a specific checkpoint, return a
+            # general assistant prompt so the model can handle small-talk, insults,
+            # and other non-checkpoint interactions in Arabic.
             return f"""
-أنت مساعد ذكي متخصص في حالة الحواجز والطرق في فلسطين.
-
+أنت مساعد ذكي ومتعدد الاستخدامات ومتحدث بالعربية.
 سؤال المستخدم: "{user_query}"
-لم أتمكن من تحديد اسم الحاجز المحدد في السؤال.
-يرجى تقديم إجابة مفيدة وطلب من المستخدم توضيح اسم الحاجز بوضوح أكثر.
 
-اذكر بعض الأمثلة على الحواجز المتوفرة مثل: قلنديا، عين سينيا، عطارة، دير استيا، العروب، الجلمة.
+ملاحظة مهمة: هذا الاستدعاء مخصَّص للمحادثات العامة (غير المتعلقة بأسماء الحواجز).
+أجب باللغة العربية باختصار وبأدب. إذا كان المستخدم مهينًا أو يستخدم ألفاظًا جارحة،
+فرد بلطف وحافظ على المهنية (مثال: "أنا هنا للمساعدة، كيف أستطيع مساعدتك؟")،
+ولا ترد بالإهانات.
+
+إذا كان السؤال عامًا (معلومات، محادثة، نصيحة) فقم بالإجابة مباشرة ومفيدة.
+إذا بدا من السياق أن المستخدم يريد معلومات عن حاجز لكنه لم يذكر اسمًا واضحًا،
+اطلب توضيحًا بسيطًا مع أمثلة لأسماء حواجز معروفة: قلنديا، عين سينيا، عطارة، دير استيا، العروب، الجلمة.
 
 تأكد من الرد باللغة العربية فقط.
             """.strip()
