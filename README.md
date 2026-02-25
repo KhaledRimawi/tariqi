@@ -137,18 +137,4 @@ Secrets (API keys, connection strings, phone numbers) are stored securely in **A
 
 ---
 
-## 📸 Screenshots
 
-> *(Add screenshots of your map, chatbot, and home page here)*
-
----
-
-## 🤝 Contributing
-
-Pull requests are welcome. For major changes, please open an issue first.
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License.
