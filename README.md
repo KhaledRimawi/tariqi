@@ -11,7 +11,6 @@
 - 🤖 **AI Chatbot** — Ask about checkpoint status in Arabic; powered by OpenAI GPT with real-time MongoDB context
 - 🔔 **Push Notifications** — Subscribe to checkpoint alerts
 - 🎙️ **Voice Chat Bot** — Voice-based checkpoint queries
-- 🌙 **Dark Mode** — Full dark/light theme support
 - 🔐 **Authentication** — Microsoft Azure AD (MSAL) login
 
 ---
