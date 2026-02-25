@@ -136,5 +136,12 @@ npm start
 Secrets (API keys, connection strings, phone numbers) are stored securely in **Azure Key Vault**.
 
 ---
+## 🎬 Live System Demo
+
+Click below to watch the full demonstration of Tariqi in action:
+
+[![Watch Tariqi Demo](https://img.youtube.com/vi/ztqZMUrvAH8/maxresdefault.jpg)](https://www.youtube.com/watch?v=ztqZMUrvAH8)
+
+
 
 
